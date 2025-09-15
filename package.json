@@ -13,6 +13,7 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "typescript": "^5.9.2"
   }
 }
