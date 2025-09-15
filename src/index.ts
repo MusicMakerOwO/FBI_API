@@ -9,12 +9,6 @@ import {Log} from './Utils/Log';
 import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER} from './Constants';
 import {Database} from './Database';
 import {IEndpoint, JSONPrimitiveStrings} from "./Types";
-import fs from 'fs';
-
-if (!fs.existsSync(`${__dirname}/../blocked-ips.txt`)) {
-	fs.writeFileSync(`${__dirname}/../blocked-ips.txt`, '', 'utf8');
-	Log('WARN', 'Created blocked-ips.txt file - Contents will be empty until IPs are added');
-}
 
 const PORT = 3002;
 
