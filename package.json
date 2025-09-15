@@ -1,9 +1,18 @@
 {
   "dependencies": {
-    "better-sqlite3": "^11.9.1",
-    "express": "^4.21.2"
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "mariadb": "^3.4.5",
+    "source-map-support": "^0.5.21"
+  },
+  "scripts": {
+    "check": "echo \"Checking for errors ...\" && tsc --noEmit",
+    "build": "echo \"Checking for errors ...\" && tsc --noEmit && echo \"Deleting old data ...\" && rm -rf build && echo \"Compiling scripts ...\" && tsc -b",
+    "start": "node build/index.js",
+    "linecount": "find . -type f -name '*.ts' -not -path './node_modules/*' -exec wc -l {} + | sort -n -r | head -n 10",
+    "test": "echo \"No tests specified\" && exit 0",
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13"
+    "typescript": "^5.9.2"
   }
 }
