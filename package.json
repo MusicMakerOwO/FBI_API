@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "cookies": "^0.9.1",
     "dotenv": "^17.2.1",
     "express": "^4.21.2",
     "mariadb": "^3.4.5",
