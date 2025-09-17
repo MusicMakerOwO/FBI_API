@@ -15,15 +15,6 @@ export interface IEndpoint<TReturn extends JSONObject | Response | void = IEndpo
 	route: string;
 	params?: Record<string, JSONPrimitiveStrings>;
 	queries?: string[];
-	/**
-	 * Whether the endpoint requires authentication.
-	 * If false, the endpoint can be accessed without authentication
-	 *
-	 * The session token will automatically be checked in the header and refreshed if valid
-	 *
-	 * @default true
-	 */
-	authenticated?: boolean;
 	handler: (req?: Request, res?: Response) => Promise<TReturn>;
 }
 
