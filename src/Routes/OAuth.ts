@@ -39,7 +39,13 @@ export default {
 		console.log(Access);
 
 		const encrypted = WrapKey(Buffer.from(Access.token + ':' + Access.expiresAt.getTime()));
-		res.cookie('session', encrypted.toString('base64'), { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 24 * 7 }); // 7 days, default for discord
+		res.cookie('session', encrypted.toString('base64'), {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days, default for discord
+			domain: '.notfbi.dev',
+		});
 
 		res.redirect('https://dashboard.notfbi.dev/home');
 	}
