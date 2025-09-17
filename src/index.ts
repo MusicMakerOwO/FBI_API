@@ -87,11 +87,6 @@ for (const file of availableRoutes) {
 		}
 	}
 
-	if (Endpoint.authenticated && typeof Endpoint.authenticated !== 'boolean') {
-		Log('ERROR', `Invalid authenticated flag in file "${relativePath}" - Authenticated must be a boolean`);
-		continue;
-	}
-
 	const key = `${Endpoint.method}:${Endpoint.route}`;
 	if (Routes.has(key)) {
 		Log('ERROR', `Duplicate route detected: ${Endpoint.method} ${Endpoint.route}`);
