@@ -52,3 +52,32 @@ export type DiscordGuild = {
 	permissions: string; // bitfield as a string
 	features: string[];
 }
+
+export enum WebSocketOpCodes {
+	// connection ops (100-199)
+	HEARTBEAT = 100,
+	HEARTBEAT_ACK = 101,
+	SERVER_ACK = 102,
+	CLIENT_ACK = 103,
+
+	// dispatch ops (200-299)
+	FLUSH_CACHE = 200,
+
+	// errors (400-499)
+	JSON_PARSE_ERROR = 400,
+	JSON_FORMAT_ERROR = 401,
+	UNKNOWN_OP_CODE = 402,
+	NO_RESPONSE = 403,
+}
+
+export type WebSocketPayload = {
+	op: WebSocketOpCodes;
+	shard: number;
+	ref: string;
+	d?: JSONObject;
+}
+
+export interface WSEndpoint<TReturn = JSONObject | void> {
+	op_code: number;
+	handler: (data: JSONObject, shardID: number) => Promise<TReturn>;
+}
