@@ -8,11 +8,17 @@ import ResolveIP from './Utils/ResolveIP';
 import {Log} from './Utils/Log';
 import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER} from './Constants';
 import {Database} from './Database';
-import {IEndpoint, JSONPrimitiveStrings} from "./Types";
+import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketOpCodes, WSEndpoint} from "./Types";
+import { WebSocketServer } from 'ws';
+import { createServer } from 'http';
 
 const PORT = 3002;
 
 const app = express();
+const server = createServer(app);
+
+const wss = new WebSocketServer({ server, path: '/ws' });
+
 app.use(express.json());
 //define the CORS headers
 app.use((req, res, next) => {
@@ -218,8 +224,9 @@ async function CleanResponse(obj: any) {
 	return obj;
 }
 
-const server = app.listen(PORT, async () => {
+server.listen(PORT, async () => {
 	Log('INFO', `Server is running on http://localhost:${PORT}`);
+	Log('INFO', `WebSocket server is running on ws://localhost:${PORT}/ws`);
 	await Database.Initialize();
 	Log('INFO', `Database initialised and ready to use`);
 });
