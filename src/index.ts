@@ -251,6 +251,55 @@ async function CleanResponse(obj: any) {
 	return obj;
 }
 
+wss.on('connection', (ws) => {
+	ws.on('message', async (rawMessage) => {
+		const message = rawMessage.toString();
+		let parsed: JSONObject = {};
+		try {
+			parsed = JSON.parse(message);
+		} catch {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_PARSE_ERROR, d: { message: 'Invalid JSON format' } }));
+		}
+
+		if (typeof parsed !== 'object' || parsed === null) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Payload must be a JSON object' } }));
+		}
+
+		if (typeof parsed.op !== 'number' || !(parsed.op in WebSocketOpCodes)) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'Unknown or missing operation code' } }));
+		}
+
+		if (typeof parsed.d !== 'object' || parsed.d === null || Array.isArray(parsed.d)) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Data (d) must be a JSON object' } }));
+		}
+
+		if (typeof parsed.shard_id !== 'number' || isNaN(parsed.shard_id) || !isFinite(parsed.shard_id) || parsed.shard_id < 0) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Invalid or missing shard_id; must be a non-negative number' } }));
+		}
+
+		if (typeof parsed.ref !== 'string') {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Invalid or missing ref; must be a unique string' } }));
+		}
+		parsed.ref = parsed.ref.trim();
+		if (parsed.ref.length === 0) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Ref must be a non-empty string' } }));
+		}
+
+		const endpoint = WebSocketHandlers.get(parsed.op);
+		if (!endpoint) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'No handler for this operation code' } }));
+		}
+		const response = await endpoint.handler(parsed.d as JSONObject, parsed.shard_id);
+		if (!response) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.NO_RESPONSE, d: { message: 'Handler did not return a response' } }));
+		} else {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.SERVER_ACK, ref: parsed.ref, d: response }) );
+		}
+	});
+
+	ws.send(JSON.stringify({ op: WebSocketOpCodes.HEARTBEAT, d: { message: 'Connection established' } }) );
+});
+
 server.listen(PORT, async () => {
 	Log('INFO', `Server is running on http://localhost:${PORT}`);
 	Log('INFO', `WebSocket server is running on ws://localhost:${PORT}/ws`);
