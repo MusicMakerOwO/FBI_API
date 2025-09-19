@@ -43,7 +43,7 @@ app.get('/favicon.ico', (req, res) => {
 });
 
 // egh
-const Routes = new Map();
+const Routes = new Map<string, IEndpoint>();
 
 const availableRoutes = ReadFolder(ROUTES_FOLDER, 5).filter(x => x.endsWith('.js'));
 Log('DEBUG', `Found ${availableRoutes.length} routes to load`);
