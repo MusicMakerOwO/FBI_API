@@ -160,7 +160,7 @@ app.all('*', async (req, res) => {
 		return res.status(404).json({ error: 'Route not found' });
 	}
 
-	const Endpoint = Routes.get(key);
+	const Endpoint = Routes.get(key)!;
 
 	const errors = [];
 
