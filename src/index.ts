@@ -44,6 +44,7 @@ app.get('/favicon.ico', (req, res) => {
 
 // egh
 const Routes = new Map<string, IEndpoint>();
+const WebSocketHandlers = new Map<number, WSEndpoint>();
 
 const availableRoutes = ReadFolder(ROUTES_FOLDER, 5).filter(x => x.endsWith('.js'));
 Log('DEBUG', `Found ${availableRoutes.length} routes to load`);
@@ -103,6 +104,32 @@ for (const file of availableRoutes) {
 }
 
 Log('DEBUG', `Loaded ${Routes.size} routes`);
+
+const WSEndpointFiles = availableRoutes.filter(x => x.includes('/WebSocket/'));
+Log('DEBUG', `Found ${WSEndpointFiles.length} WebSocket handlers to load`);
+
+for (const file of WSEndpointFiles) {
+	const relativePath = file.replace(__dirname + '/', '');
+	let Endpoint = require(file) as WSEndpoint | { default: WSEndpoint };
+	if ('default' in Endpoint) {
+		Endpoint = Endpoint.default;
+	}
+	if (typeof Endpoint.op_code !== 'number' || !(Endpoint.op_code in WebSocketOpCodes)) {
+		Log('ERROR', `Invalid op code in file "${relativePath}" - Op code must be a valid WebSocketOpCodes enum value`);
+		continue;
+	}
+	if (!Endpoint.handler || Endpoint.handler.constructor.name !== 'AsyncFunction') {
+		Log('ERROR', `Invalid handler in file "${relativePath}" - Handler must be an async function`);
+		continue;
+	}
+	if (WebSocketHandlers.has(Endpoint.op_code)) {
+		Log('ERROR', `Duplicate WebSocket op code detected: ${Endpoint.op_code} in file "${relativePath}"`);
+		continue;
+	}
+
+	WebSocketHandlers.set(Endpoint.op_code, Endpoint);
+}
+Log('DEBUG', `Loaded ${WebSocketHandlers.size} WebSocket handlers`);
 
 //  Request Validator
 async function CheckType(value: any, type: JSONPrimitiveStrings): Promise<boolean> {
