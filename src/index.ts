@@ -333,7 +333,7 @@ wss.on('connection', (ws) => {
 		const response = await endpoint.handler(parsed.d as JSONObject)
 		if (!response) return;
 
-		ws.send(JSON.stringify({ op: WebSocketOpCodes.SERVER_ACK, ref: parsed.ref, d: response }) );
+		ws.send(JSON.stringify({ op: WebSocketOpCodes.SERVER_ACK, d: response }) );
 	});
 
 	setInterval(() => {
