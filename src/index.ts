@@ -288,6 +288,17 @@ wss.on('connection', (ws) => {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'Unknown or missing operation code' } }));
 		}
 
+		if(parsed.op === WebSocketOpCodes.HEARTBEAT_ACK) {
+			const session = sessions.get(sessionID);
+			if (session) {
+				session.lastAck = Date.now();
+				session.active = true;
+				session.ws = ws;
+				Log('INFO', `WebSocket connection re-established. Code: ${sessionID}`);
+			}
+			return;
+		}
+
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Data (d) must be a JSON object' } }));
@@ -325,7 +336,16 @@ wss.on('connection', (ws) => {
 		ws.send(JSON.stringify({ op: WebSocketOpCodes.SERVER_ACK, ref: parsed.ref, d: response }) );
 	});
 
-	ws.send(JSON.stringify({ op: WebSocketOpCodes.HEARTBEAT, d: { message: 'Connection established' } }) );
+	setInterval(() => {
+		const session = sessions.get(sessionID);
+		if (!session || !session.ws) return;
+		if (Date.now() - session.lastAck > 90_000) { // 90 seconds without ack
+			session.ws.close();
+			Log('WARN', `WebSocket connection timed out due to inactivity. Code: ${sessionID}`);
+			return;
+		}
+		session.ws.send(JSON.stringify({ op: WebSocketOpCodes.HEARTBEAT }));
+	}, 30_000);
 });
 
 server.listen(PORT, async () => {
