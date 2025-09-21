@@ -253,10 +253,9 @@ async function CleanResponse(obj: any) {
 
 wss.on('connection', (ws) => {
 	ws.on('message', async (rawMessage) => {
-		const message = rawMessage.toString();
 		let parsed: JSONObject = {};
 		try {
-			parsed = JSON.parse(message);
+			parsed = JSON.parse(rawMessage.toString());
 		} catch {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_PARSE_ERROR, d: { message: 'Invalid JSON format' } }));
 		}
