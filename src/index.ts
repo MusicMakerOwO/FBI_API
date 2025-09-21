@@ -278,7 +278,8 @@ wss.on('connection', (ws) => {
 		if (!endpoint) {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'No handler for this operation code' } }));
 		}
-		const response = await endpoint.handler(parsed.d as JSONObject, parsed.shard_id);
+
+		const response = await endpoint.handler(parsed.d as JSONObject)
 		if (!response) {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.NO_RESPONSE, d: { message: 'Handler did not return a response' } }));
 		} else {
