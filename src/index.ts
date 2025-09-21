@@ -269,7 +269,8 @@ wss.on('connection', (ws) => {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'Unknown or missing operation code' } }));
 		}
 
-		if (typeof parsed.d !== 'object' || parsed.d === null || Array.isArray(parsed.d)) {
+		parsed.d ??= {}; // null | undefined -> {}
+		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Data (d) must be a JSON object' } }));
 		}
 
