@@ -273,18 +273,6 @@ wss.on('connection', (ws) => {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Data (d) must be a JSON object' } }));
 		}
 
-		if (typeof parsed.shard_id !== 'number' || isNaN(parsed.shard_id) || !isFinite(parsed.shard_id) || parsed.shard_id < 0) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Invalid or missing shard_id; must be a non-negative number' } }));
-		}
-
-		if (typeof parsed.ref !== 'string') {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Invalid or missing ref; must be a unique string' } }));
-		}
-		parsed.ref = parsed.ref.trim();
-		if (parsed.ref.length === 0) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Ref must be a non-empty string' } }));
-		}
-
 		const endpoint = WebSocketHandlers.get(parsed.op);
 		if (!endpoint) {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'No handler for this operation code' } }));

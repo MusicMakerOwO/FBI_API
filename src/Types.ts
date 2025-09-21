@@ -72,12 +72,10 @@ export enum WebSocketOpCodes {
 
 export type WebSocketPayload = {
 	op: WebSocketOpCodes;
-	shard: number;
-	ref: string;
 	d?: JSONObject;
 }
 
 export interface WSEndpoint<TReturn = JSONObject | void> {
 	op_code: number;
-	handler: (data: JSONObject, shardID: number) => Promise<TReturn>;
+	handler: (data: JSONObject) => Promise<TReturn>;
 }
