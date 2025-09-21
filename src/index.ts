@@ -279,11 +279,9 @@ wss.on('connection', (ws) => {
 		}
 
 		const response = await endpoint.handler(parsed.d as JSONObject)
-		if (!response) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.NO_RESPONSE, d: { message: 'Handler did not return a response' } }));
-		} else {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.SERVER_ACK, ref: parsed.ref, d: response }) );
-		}
+		if (!response) return;
+
+		ws.send(JSON.stringify({ op: WebSocketOpCodes.SERVER_ACK, ref: parsed.ref, d: response }) );
 	});
 
 	ws.send(JSON.stringify({ op: WebSocketOpCodes.HEARTBEAT, d: { message: 'Connection established' } }) );
