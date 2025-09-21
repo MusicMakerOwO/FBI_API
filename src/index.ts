@@ -251,7 +251,26 @@ async function CleanResponse(obj: any) {
 	return obj;
 }
 
+const sessions = new Map<string, { ws: WebSocket | null, active: boolean, lastAck: number }>();
+
 wss.on('connection', (ws) => {
+
+	const sessionID = GenerateCode(16);
+	sessions.set(sessionID, { ws, active: true, lastAck: Date.now() });
+
+	Log('INFO', `New WebSocket connection established. Code: ${sessionID}`);
+
+	ws.send(JSON.stringify({ op: WebSocketOpCodes.HELLO, d: { code: sessionID } }));
+
+	ws.on('close', () => {
+		const session = sessions.get(sessionID);
+		if (session) {
+			session.ws = null;
+			session.active = false;
+		}
+		Log('WARN', `WebSocket connection closed. Code: ${sessionID}`);
+	});
+
 	ws.on('message', async (rawMessage) => {
 		let parsed: JSONObject = {};
 		try {
@@ -271,6 +290,27 @@ wss.on('connection', (ws) => {
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Data (d) must be a JSON object' } }));
+		}
+
+		if (parsed.op === WebSocketOpCodes.RESUME) {
+			if (typeof parsed.d.code !== 'string' || !parsed.d.code.trim()) {
+				return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Missing or invalid resume code' } }));
+			}
+
+			const resumeCode = parsed.d.code.trim();
+			if (!sessions.has(resumeCode)) {
+				return ws.send(JSON.stringify({ op: WebSocketOpCodes.INVALID_SESSION }));
+			}
+
+			const session = sessions.get(resumeCode)!;
+			if (session.active) return;
+
+			session.ws = ws;
+			session.active = true;
+			session.lastAck = Date.now();
+			Log('INFO', `WebSocket connection resumed. Code: ${resumeCode}`);
+
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.RESUME, d: { success: true, message: 'Session resumed successfully' } }));
 		}
 
 		const endpoint = WebSocketHandlers.get(parsed.op);
