@@ -70,6 +70,7 @@ export enum WebSocketOpCodes {
 	JSON_FORMAT_ERROR = 401,
 	UNKNOWN_OP_CODE = 402,
 	NO_RESPONSE = 403,
+	INVALID_SESSION = 404,
 }
 
 export type WebSocketPayload = {
