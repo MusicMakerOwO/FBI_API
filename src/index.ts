@@ -9,8 +9,9 @@ import {Log} from './Utils/Log';
 import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER} from './Constants';
 import {Database} from './Database';
 import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketOpCodes, WSEndpoint} from "./Types";
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 import { createServer } from 'http';
+import {GenerateCode} from "./Utils/GenerateCode";
 
 const PORT = 3002;
 
