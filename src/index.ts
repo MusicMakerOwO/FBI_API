@@ -365,8 +365,10 @@ async function Shutdown(code: string) {
 	console.log();
 	Log('WARN', `Received ${code}, shutting down ...`);
 
+	const errCallback = Log.bind(null, 'ERROR');
+
 	Log('INFO', 'Closing database connection ...');
-	await Database.destroy();
+	await Database.destroy().catch(errCallback);
 
 	Log('INFO', `Closing ${sessions.size} active WebSocket sessions ...`);
 	for (const [code, session] of sessions) {
@@ -379,7 +381,7 @@ async function Shutdown(code: string) {
 	wss.close();
 
 	Log('INFO', 'Closing HTTP server ...');
-	await new Promise( r => server.close(r) );
+	await new Promise( r => server.close(r) ).catch(errCallback);
 
 	process.exit(0);
 }
