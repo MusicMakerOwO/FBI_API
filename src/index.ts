@@ -294,7 +294,7 @@ wss.on('connection', (ws) => {
 			return;
 		}
 
-		if(parsed.op === WebSocketOpCodes.HEARTBEAT_ACK) {
+		if (parsed.op === WebSocketOpCodes.HEARTBEAT_ACK) {
 			const session = sessions.get(sessionID);
 			if (session) {
 				session.lastAck = Date.now();
@@ -303,6 +303,8 @@ wss.on('connection', (ws) => {
 			}
 			return;
 		}
+
+		console.log(parsed);
 
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
