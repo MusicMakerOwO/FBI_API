@@ -77,6 +77,7 @@ export enum WebSocketOpCodes {
 
 export type WebSocketPayload = {
 	op: WebSocketOpCodes;
+	code: string;
 	d?: JSONObject;
 }
 
