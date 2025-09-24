@@ -361,11 +361,7 @@ server.listen(PORT, async () => {
 	Log('INFO', `Database initialised and ready to use`);
 });
 
-let shuttingDown = false;
 async function Shutdown(code: string) {
-	if (shuttingDown) return;
-	shuttingDown = true; // Prevent multiple shutdowns
-
 	console.log();
 	Log('WARN', `Received ${code}, shutting down ...`);
 
