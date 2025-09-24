@@ -71,6 +71,8 @@ export enum WebSocketOpCodes {
 	UNKNOWN_OP_CODE = 402,
 	NO_RESPONSE = 403,
 	INVALID_SESSION = 404,
+
+	SHUTTING_DOWN = 499,
 }
 
 export type WebSocketPayload = {
