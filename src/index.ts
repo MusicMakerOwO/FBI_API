@@ -18,7 +18,7 @@ const PORT = 3002;
 const app = express();
 const server = createServer(app);
 
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({ server, path: '/' });
 
 app.use(express.json());
 //define the CORS headers
