@@ -288,6 +288,12 @@ wss.on('connection', (ws) => {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'Unknown or missing operation code' } }));
 		}
 
+		if (!sessions.has(parsed.code as unknown as string)) {
+			ws.send(JSON.stringify({ op: WebSocketOpCodes.INVALID_SESSION, d: { message: 'Invalid or missing session code' } }));
+			ws.close();
+			return;
+		}
+
 		if(parsed.op === WebSocketOpCodes.HEARTBEAT_ACK) {
 			const session = sessions.get(sessionID);
 			if (session) {
