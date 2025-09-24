@@ -368,8 +368,18 @@ async function Shutdown(code: string) {
 	Log('INFO', 'Closing database connection ...');
 	await Database.destroy();
 
-	Log('INFO', 'Shutting down server ...');
-	await new Promise(r => server.close(r));
+	Log('INFO', `Closing ${sessions.size} active WebSocket sessions ...`);
+	for (const [code, session] of sessions) {
+		if (session.ws) {
+			session.ws.send(JSON.stringify({ op: WebSocketOpCodes.SHUTTING_DOWN }));
+			session.ws.close( 1001, 'Server is shutting down' );
+		}
+		sessions.delete(code);
+	}
+	wss.close();
+
+	Log('INFO', 'Closing HTTP server ...');
+	await new Promise( r => server.close(r) );
 
 	process.exit(0);
 }
