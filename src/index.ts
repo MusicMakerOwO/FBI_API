@@ -346,6 +346,7 @@ wss.on('connection', (ws) => {
 		if (!session || !session.ws) return;
 		if (Date.now() - session.lastAck > 90_000) { // 90 seconds without ack
 			session.ws.close();
+			sessions.delete(sessionID);
 			Log('WARN', `WebSocket connection timed out due to inactivity. Code: ${sessionID}`);
 			return;
 		}
