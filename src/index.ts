@@ -300,7 +300,6 @@ wss.on('connection', (ws) => {
 				session.lastAck = Date.now();
 				session.active = true;
 				session.ws = ws;
-				Log('INFO', `WebSocket connection re-established. Code: ${sessionID}`);
 			}
 			return;
 		}
