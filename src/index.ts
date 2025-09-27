@@ -311,27 +311,6 @@ wss.on('connection', (ws) => {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Data (d) must be a JSON object' } }));
 		}
 
-		if (parsed.op === WebSocketOpCodes.RESUME) {
-			if (typeof parsed.d.code !== 'string' || !parsed.d.code.trim()) {
-				return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Missing or invalid resume code' } }));
-			}
-
-			const resumeCode = parsed.d.code.trim();
-			if (!sessions.has(resumeCode)) {
-				return ws.send(JSON.stringify({ op: WebSocketOpCodes.INVALID_SESSION }));
-			}
-
-			const session = sessions.get(resumeCode)!;
-			if (session.active) return;
-
-			session.ws = ws;
-			session.active = true;
-			session.lastAck = Date.now();
-			Log('INFO', `WebSocket connection resumed. Code: ${resumeCode}`);
-
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.RESUME, d: { success: true, message: 'Session resumed successfully' } }));
-		}
-
 		const endpoint = WebSocketHandlers.get(parsed.op);
 		if (!endpoint) {
 			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'No handler for this operation code' } }));
