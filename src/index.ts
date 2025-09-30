@@ -292,9 +292,14 @@ wss.on('connection', (ws) => {
 		if (typeof parsed.op !== 'number' || !(parsed.op in WEBSOCKET_OP_CODES)) {
 			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE }));
 		}
+		const session = sessions.get(sessionID);
+		if (!session) {
+			ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_INVALID_AUTH }));
+			ws.close();
+			return;
+		}
 
 		if (parsed.op === WEBSOCKET_OP_CODES.HEARTBEAT_ACK) {
-			const session = sessions.get(sessionID);
 			if (session) {
 				session.lastAck = Date.now();
 				session.active = true;
@@ -310,7 +315,6 @@ wss.on('connection', (ws) => {
 			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
 		}
 
-		const session = sessions.get(sessionID)!;
 		if (!session.authorized) {
 			// only thing you can do is heartbeat and identify
 
