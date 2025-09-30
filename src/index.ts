@@ -6,7 +6,7 @@ import express from 'express';
 import ReadFolder from './Utils/ReadFolder';
 import ResolveIP from './Utils/ResolveIP';
 import {Log} from './Utils/Log';
-import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER, WebSocketOpCodes} from './Constants';
+import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER, WEBSOCKET_OP_CODES} from './Constants';
 import {Database} from './Database';
 import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketPayload, WSEndpoint} from "./Types";
 import { WebSocketServer, WebSocket } from 'ws';
@@ -262,7 +262,7 @@ wss.on('connection', (ws) => {
 
 	Log('INFO', `New WebSocket connection established. Code: ${sessionID}`);
 
-	ws.send(JSON.stringify({ op: WebSocketOpCodes.HELLO, d: { code: sessionID } }));
+	ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HELLO }));
 
 	ws.on('close', () => {
 		const session = sessions.get(sessionID);
@@ -278,22 +278,22 @@ wss.on('connection', (ws) => {
 		try {
 			parsed = JSON.parse(rawMessage.toString());
 		} catch {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_PARSE }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_PARSE }));
 		}
 
 		if (typeof parsed !== 'object' || parsed === null) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_FORMAT }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
 		}
 
-		if (typeof parsed.op !== 'number' || !(parsed.op in WebSocketOpCodes)) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_UNKNOWN_OP_CODE }));
+		if (typeof parsed.op !== 'number' || !(parsed.op in WEBSOCKET_OP_CODES)) {
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE }));
 		}
 
 		if (typeof parsed.seq !== 'number' || parsed.seq < 0) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_FORMAT }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
 		}
 
-		if (parsed.op === WebSocketOpCodes.HEARTBEAT_ACK) {
+		if (parsed.op === WEBSOCKET_OP_CODES.HEARTBEAT_ACK) {
 			const session = sessions.get(sessionID);
 			if (session) {
 				session.lastAck = Date.now();
@@ -303,7 +303,7 @@ wss.on('connection', (ws) => {
 			return;
 		}
 
-		if (parsed.op === WebSocketOpCodes.OK) {
+		if (parsed.op === WEBSOCKET_OP_CODES.OK) {
 			WebSocketWrapper.Receive(parsed as WebSocketPayload);
 			return;
 		}
@@ -312,17 +312,17 @@ wss.on('connection', (ws) => {
 
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_FORMAT }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
 		}
 
 		const endpoint = WebSocketHandlers.get(parsed.op);
 		if (!endpoint) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_UNKNOWN_OP_CODE }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE }));
 		}
 
 		const response = await endpoint.handler(parsed.d).catch((error: unknown) => {
 			Log('ERROR', error);
-			return { op: WebSocketOpCodes.ERR_NO_RESPONSE };
+			return { op: WEBSOCKET_OP_CODES.ERR_NO_RESPONSE };
 		});
 		if (!response) return;
 
@@ -338,7 +338,7 @@ wss.on('connection', (ws) => {
 			Log('WARN', `WebSocket connection timed out due to inactivity. Code: ${sessionID}`);
 			return;
 		}
-		session.ws.send(JSON.stringify({ op: WebSocketOpCodes.HEARTBEAT }));
+		session.ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HEARTBEAT }));
 	}, 30_000);
 });
 
@@ -361,7 +361,7 @@ async function Shutdown(code: string) {
 	Log('INFO', `Closing ${sessions.size} active WebSocket sessions ...`);
 	for (const [code, session] of sessions) {
 		if (session.ws) {
-			session.ws.send(JSON.stringify({ op: WebSocketOpCodes.SHUTTING_DOWN }));
+			session.ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.SHUTTING_DOWN }));
 			session.ws.close( 1001, 'Server is shutting down' );
 		}
 		sessions.delete(code);
