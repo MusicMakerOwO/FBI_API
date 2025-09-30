@@ -1,7 +1,6 @@
 import {Log} from "./Log";
 import {WebSocket} from 'ws';
 import {JSONObject, WebSocketPayload} from "../Types";
-import {WebSocketOpCodes} from "../Constants";
 
 type PromiseHandlers = {
 	resolve: (value: any) => void;

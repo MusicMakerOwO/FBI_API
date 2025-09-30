@@ -1,5 +1,4 @@
 import {Request, Response} from 'express';
-import {WebSocketOpCodes} from "./Constants";
 
 export type JSONPrimitives = string | number | boolean | null;
 export type JSONValue = JSONPrimitives | JSONValue[] | { [key: string]: JSONValue };
