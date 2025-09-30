@@ -37,6 +37,9 @@ const WEBSOCKET_OP_CODES = {
 	ERR_BAD_OP_CODES	: 405,
 
 	SHUTTING_DOWN		: 499,
+
+	// critical errors (500-599)
+	CRIT_SERVER_BUSY		: 500,
 }
 
 export {
