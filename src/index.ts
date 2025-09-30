@@ -13,6 +13,7 @@ import {WebSocketServer, WebSocket} from 'ws';
 import {createServer} from 'http';
 import {WebSocketWrapper} from "./Utils/WebSocketWrapper";
 import {HashObject} from "./Utils/HashObject";
+import {SecureStringTest} from "./Utils/SecureStringTest";
 
 const PORT = 3002;
 
@@ -265,8 +266,7 @@ wss.on('connection', (ws) => {
 
 	Log('INFO', `New WebSocket connection established. Code: ${sessionID}`);
 
-	const opCodeHash = HashObject(WEBSOCKET_OP_CODES);
-	ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HELLO, d: { op_codes: opCodeHash } }));
+	ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HELLO }));
 
 	ws.on('close', () => {
 		const session = sessions.get(sessionID);
@@ -293,10 +293,6 @@ wss.on('connection', (ws) => {
 			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE }));
 		}
 
-		if (typeof parsed.seq !== 'number' || parsed.seq < 0) {
-			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
-		}
-
 		if (parsed.op === WEBSOCKET_OP_CODES.HEARTBEAT_ACK) {
 			const session = sessions.get(sessionID);
 			if (session) {
@@ -307,22 +303,61 @@ wss.on('connection', (ws) => {
 			return;
 		}
 
-		const session = sessions.get(sessionID)!;
-		if (!session.authorized) {
-			// only thing you can do is heartbeat and identify
-			return;
-		}
-
-		if (parsed.op === WEBSOCKET_OP_CODES.OK) {
-			WebSocketWrapper.Receive(parsed as WebSocketPayload);
-			return;
-		}
-
 		console.log(parsed);
 
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
 			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
+		}
+
+		const session = sessions.get(sessionID)!;
+		if (!session.authorized) {
+			// only thing you can do is heartbeat and identify
+
+			if (parsed.op === WEBSOCKET_OP_CODES.IDENTIFY) {
+
+				const opCodeHash = HashObject(WEBSOCKET_OP_CODES);
+
+				const CloseConnection = (op: number) => {
+					ws.send(JSON.stringify({ op }));
+					ws.close();
+					sessions.delete(sessionID);
+				}
+
+				if (typeof parsed.d.auth !== 'string' || !parsed.d.auth.trim()) {
+					return CloseConnection(WEBSOCKET_OP_CODES.ERR_INVALID_AUTH);
+				}
+				if (typeof parsed.d.op_code_hash !== 'string' || !parsed.d.op_code_hash.trim()) {
+					return CloseConnection(WEBSOCKET_OP_CODES.ERR_BAD_OP_CODES);
+				}
+				const base64Regex = /^[A-Za-z0-9+\/=]+$/;
+				if (!base64Regex.test(parsed.d.auth)) {
+					return CloseConnection(WEBSOCKET_OP_CODES.ERR_INVALID_AUTH);
+				}
+				const isValidAuth = SecureStringTest(parsed.d.auth, process.env.WEBSOCKET_AUTH!);
+				if (!isValidAuth) {
+					return CloseConnection(WEBSOCKET_OP_CODES.ERR_INVALID_AUTH);
+				}
+
+				// not critical for security, just sanity check to prevent issues
+				if (parsed.d.op_code_hash !== opCodeHash) {
+					return CloseConnection(WEBSOCKET_OP_CODES.ERR_BAD_OP_CODES);
+				}
+
+				session.authorized = true;
+				Log('INFO', `WebSocket connection authorized - Session #${sessionID}`);
+			}
+
+			return;
+		}
+
+		if (typeof parsed.seq !== 'number' || parsed.seq < 0) {
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
+		}
+
+		if (parsed.op === WEBSOCKET_OP_CODES.OK) {
+			WebSocketWrapper.Receive(parsed as WebSocketPayload);
+			return;
 		}
 
 		const endpoint = WebSocketHandlers.get(parsed.op);
