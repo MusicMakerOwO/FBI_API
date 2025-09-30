@@ -16,7 +16,7 @@ export class WebSocketWrapper {
 
 	// no constructor, everything is static
 
-	static Recieve(data: WebSocketPayload): void {
+	static Receive(data: WebSocketPayload): void {
 		if (data.seq && WSPromises.has(data.seq)) {
 			const promise = WSPromises.get(data.seq)!;
 			WSPromises.delete(data.seq);

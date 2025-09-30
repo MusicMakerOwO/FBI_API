@@ -304,7 +304,7 @@ wss.on('connection', (ws) => {
 		}
 
 		if (parsed.op === WebSocketOpCodes.OK) {
-			WebSocketWrapper.Recieve(parsed as WebSocketPayload);
+			WebSocketWrapper.Receive(parsed as WebSocketPayload);
 			return;
 		}
 
