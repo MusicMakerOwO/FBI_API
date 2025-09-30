@@ -264,7 +264,7 @@ wss.on('connection', (ws) => {
 	const sessionID = ( sessionCounter = (sessionCounter + 1) % Number.MAX_SAFE_INTEGER );
 	sessions.set(sessionID, { ws, authorized: false, active: true, lastAck: Date.now() });
 
-	Log('INFO', `New WebSocket connection established. Code: ${sessionID}`);
+	Log('INFO', `New WebSocket connection established - Session #${sessionID}`);
 
 	ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HELLO }));
 
@@ -274,7 +274,7 @@ wss.on('connection', (ws) => {
 			session.ws = null;
 			session.active = false;
 		}
-		Log('WARN', `WebSocket connection closed. Code: ${sessionID}`);
+		Log('WARN', `WebSocket connection closed - Session #${sessionID}`);
 	});
 
 	ws.on('message', async (rawMessage) => {
@@ -380,7 +380,7 @@ wss.on('connection', (ws) => {
 		if (Date.now() - session.lastAck > 90_000) { // 90 seconds without ack
 			session.ws.close();
 			sessions.delete(sessionID);
-			Log('WARN', `WebSocket connection timed out due to inactivity. Code: ${sessionID}`);
+			Log('WARN', `WebSocket connection timed out due to inactivity - Session #${sessionID}`);
 			return;
 		}
 		session.ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HEARTBEAT }));
