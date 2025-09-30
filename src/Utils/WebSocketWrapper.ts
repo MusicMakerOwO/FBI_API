@@ -28,7 +28,7 @@ export class WebSocketWrapper {
 		}
 	}
 
-	static Send<T>(ws: WebSocket, op: WebSocketOpCodes, d?: JSONObject): Promise<T | void> {
+	static Send<T>(ws: WebSocket, op: number, d?: JSONObject): Promise<T | void> {
 		const seq = (requestCounter = (requestCounter + 1) % Number.MAX_SAFE_INTEGER);
 		const payload: WebSocketPayload = {
 			op,

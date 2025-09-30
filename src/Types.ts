@@ -56,13 +56,13 @@ export type DiscordGuild = {
 
 
 export type WebSocketPayload = {
-	op: WebSocketOpCodes;
+	op: number;
 	seq: number;
 	d?: JSONObject;
 }
 
 export type WebSocketHandlerResponse = {
-	op: WebSocketOpCodes;
+	op: number;
 	d?: JSONObject;
 }
 
