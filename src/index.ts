@@ -9,9 +9,8 @@ import {Log} from './Utils/Log';
 import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER, WEBSOCKET_OP_CODES} from './Constants';
 import {Database} from './Database';
 import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketPayload, WSEndpoint} from "./Types";
-import { WebSocketServer, WebSocket } from 'ws';
-import { createServer } from 'http';
-import {GenerateCode} from "./Utils/GenerateCode";
+import {WebSocketServer, WebSocket} from 'ws';
+import {createServer} from 'http';
 import {WebSocketWrapper} from "./Utils/WebSocketWrapper";
 
 const PORT = 3002;
@@ -253,11 +252,12 @@ async function CleanResponse(obj: any) {
 	return obj;
 }
 
-const sessions = new Map<string, { ws: WebSocket | null, active: boolean, lastAck: number }>();
+let sessionCounter = 0;
+const sessions = new Map<number, { ws: WebSocket | null, active: boolean, lastAck: number }>();
 
 wss.on('connection', (ws) => {
 
-	const sessionID = GenerateCode(16);
+	const sessionID = ( sessionCounter = (sessionCounter + 1) % Number.MAX_SAFE_INTEGER );
 	sessions.set(sessionID, { ws, active: true, lastAck: Date.now() });
 
 	Log('INFO', `New WebSocket connection established. Code: ${sessionID}`);
