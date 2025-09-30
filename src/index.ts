@@ -289,11 +289,8 @@ wss.on('connection', (ws) => {
 	ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HELLO }));
 
 	ws.on('close', () => {
-		const session = sessions.get(sessionID);
-		if (session) {
-			session.ws = null;
-			session.active = false;
-		}
+		sessions.delete(sessionID);
+		WebSocketWrapper.CloseWS(ws);
 		Log('WARN', `WebSocket connection closed - Session #${sessionID}`);
 	});
 
@@ -315,7 +312,7 @@ wss.on('connection', (ws) => {
 		const session = sessions.get(sessionID);
 		if (!session) {
 			ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_INVALID_AUTH }));
-			ws.close();
+			WebSocketWrapper.CloseWS(ws);
 			return;
 		}
 
@@ -344,7 +341,7 @@ wss.on('connection', (ws) => {
 
 				const CloseConnection = (op: number) => {
 					ws.send(JSON.stringify({ op }));
-					ws.close();
+					WebSocketWrapper.CloseWS(ws);
 					sessions.delete(sessionID);
 				}
 
@@ -381,7 +378,7 @@ wss.on('connection', (ws) => {
 		}
 
 		if (parsed.op === WEBSOCKET_OP_CODES.OK) {
-			WebSocketWrapper.Receive(parsed as WebSocketPayload);
+			WebSocketWrapper.Receive(ws, parsed as WebSocketPayload);
 			return;
 		}
 
@@ -403,7 +400,7 @@ wss.on('connection', (ws) => {
 		const session = sessions.get(sessionID);
 		if (!session || !session.ws) return;
 		if (Date.now() - session.lastAck > 90_000) { // 90 seconds without ack
-			session.ws.close();
+			WebSocketWrapper.CloseWS(session.ws);
 			sessions.delete(sessionID);
 			Log('WARN', `WebSocket connection timed out due to inactivity - Session #${sessionID}`);
 			return;
@@ -433,6 +430,7 @@ async function Shutdown(code: string) {
 		if (session.ws) {
 			session.ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.SHUTTING_DOWN }));
 			session.ws.close( 1001, 'Server is shutting down' );
+			WebSocketWrapper.CloseWS(session.ws);
 		}
 		sessions.delete(code);
 	}
