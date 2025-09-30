@@ -11,7 +11,7 @@ import {Database} from './Database';
 import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketPayload, WSEndpoint} from "./Types";
 import {WebSocketServer, WebSocket} from 'ws';
 import {createServer} from 'http';
-import {WebSocketWrapper} from "./Utils/WebSocketWrapper";
+import * as WebSocketWrapper from "./Utils/WebSocketWrapper";
 import {HashObject} from "./Utils/HashObject";
 import {SecureStringTest} from "./Utils/SecureStringTest";
 
