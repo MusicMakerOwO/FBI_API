@@ -256,12 +256,12 @@ async function CleanResponse(obj: any) {
 	return obj;
 }
 
-let sessionCounter = 0;
+let sessionCounter = 0; // unsigned int, 4 bytes
 const sessions = new Map<number, { ws: WebSocket | null, authorized: boolean, active: boolean, lastAck: number }>();
 
 wss.on('connection', (ws) => {
 
-	const sessionID = ( sessionCounter = (sessionCounter + 1) % Number.MAX_SAFE_INTEGER );
+	const sessionID = ( sessionCounter = (sessionCounter + 1) % 0xFFFFFFFF ); // wrap around at 2^32 - 1
 	sessions.set(sessionID, { ws, authorized: false, active: true, lastAck: Date.now() });
 
 	Log('INFO', `New WebSocket connection established - Session #${sessionID}`);
