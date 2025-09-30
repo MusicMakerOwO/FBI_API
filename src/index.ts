@@ -261,6 +261,26 @@ const sessions = new Map<number, { ws: WebSocket | null, authorized: boolean, ac
 
 wss.on('connection', (ws) => {
 
+	let deadConnectionCount = 0;
+	let noAuthCount = 0;
+	for (const session of sessions.values()) {
+		if (!session.active || !session.ws || session.ws.readyState !== WebSocket.OPEN) {
+			deadConnectionCount++;
+		}
+		if (!session.authorized) {
+			noAuthCount++;
+		}
+	}
+
+	if (deadConnectionCount > 10) Log('WARN', `Found ${deadConnectionCount} dead WebSocket connections, did you forget to clear them?`);
+	if (noAuthCount > 10) Log('WARN', `Found ${noAuthCount} unauthorized WebSocket connections, did the client forget to authenticate?`);
+	if (sessions.size - deadConnectionCount >= 100) {
+		Log('ERROR', `Rejecting new WebSocket connection - Server is handling ${sessions.size - deadConnectionCount} active WebSocket connections`);
+		ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.CRIT_SERVER_BUSY }));
+		WebSocketWrapper.CloseWS(ws);
+		return;
+	}
+
 	const sessionID = ( sessionCounter = (sessionCounter + 1) % 0xFFFFFFFF ); // wrap around at 2^32 - 1
 	sessions.set(sessionID, { ws, authorized: false, active: true, lastAck: Date.now() });
 
