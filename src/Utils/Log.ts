@@ -43,7 +43,7 @@ function GetTimestamp() {
 	return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-function Log(type: keyof typeof LOG_TYPE, message: unknown) {
+function Log(type: keyof typeof LOG_TYPE, ... messages: unknown[]) {
 	if (!LOG_TYPE[type]) {
 		console.error(`${COLOR.RED}Invalid log type: ${type}. Valid types are: ${Object.keys(LOG_TYPE).join(', ')}${COLOR.RESET}`);
 		return;
@@ -55,7 +55,12 @@ function Log(type: keyof typeof LOG_TYPE, message: unknown) {
 	const timestamp = GetTimestamp();
 	const color = LOG_COLOR[type];
 
-	const messageString = typeof message === 'string' ? message : inspect(message, { depth: 3, colors: !isError });
+	for (let i = 0; i < messages.length; i++) {
+		const msg = messages[i];
+		if (typeof msg !== 'string') messages[i] = inspect(msg, { depth: 3, colors: !isError });
+	}
+
+	const messageString = messages.join(' ');
 
 	console.log(`${color}${logType} ${timestamp} : ${!isError ? COLOR.RESET : ''}${messageString}${COLOR.RESET}`);
 }
