@@ -350,6 +350,7 @@ wss.on('connection', (ws) => {
 
 				session.authorized = true;
 				Log('INFO', `WebSocket connection authorized - Session #${sessionID}`);
+				return;
 			}
 
 			return;
