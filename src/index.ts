@@ -12,6 +12,7 @@ import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketOpCodes, WebSocket
 import { WebSocketServer, WebSocket } from 'ws';
 import { createServer } from 'http';
 import {GenerateCode} from "./Utils/GenerateCode";
+import {WebSocketWrapper} from "./Utils/WebSocketWrapper";
 
 const PORT = 3002;
 
@@ -299,6 +300,11 @@ wss.on('connection', (ws) => {
 				session.active = true;
 				session.ws = ws;
 			}
+			return;
+		}
+
+		if (parsed.op === WebSocketOpCodes.OK) {
+			WebSocketWrapper.Recieve(parsed as WebSocketPayload);
 			return;
 		}
 
