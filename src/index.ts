@@ -12,6 +12,7 @@ import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketPayload, WSEndpoin
 import {WebSocketServer, WebSocket} from 'ws';
 import {createServer} from 'http';
 import {WebSocketWrapper} from "./Utils/WebSocketWrapper";
+import {HashObject} from "./Utils/HashObject";
 
 const PORT = 3002;
 
@@ -109,13 +110,15 @@ Log('DEBUG', `Loaded ${Routes.size} routes`);
 const WSEndpointFiles = availableRoutes.filter(x => x.includes('/WebSocket/'));
 Log('DEBUG', `Found ${WSEndpointFiles.length} WebSocket handlers to load`);
 
+const AvailableOpCodes = new Set<number>(Object.values(WEBSOCKET_OP_CODES));
+
 for (const file of WSEndpointFiles) {
 	const relativePath = file.replace(__dirname + '/', '');
 	let Endpoint = require(file) as WSEndpoint | { default: WSEndpoint };
 	if ('default' in Endpoint) {
 		Endpoint = Endpoint.default;
 	}
-	if (typeof Endpoint.op_code !== 'number' || !(Endpoint.op_code in WebSocketOpCodes)) {
+	if (typeof Endpoint.op_code !== 'number' || !AvailableOpCodes.has(Endpoint.op_code)) {
 		Log('ERROR', `Invalid op code in file "${relativePath}" - Op code must be a valid WebSocketOpCodes enum value`);
 		continue;
 	}
@@ -253,16 +256,17 @@ async function CleanResponse(obj: any) {
 }
 
 let sessionCounter = 0;
-const sessions = new Map<number, { ws: WebSocket | null, active: boolean, lastAck: number }>();
+const sessions = new Map<number, { ws: WebSocket | null, authorized: boolean, active: boolean, lastAck: number }>();
 
 wss.on('connection', (ws) => {
 
 	const sessionID = ( sessionCounter = (sessionCounter + 1) % Number.MAX_SAFE_INTEGER );
-	sessions.set(sessionID, { ws, active: true, lastAck: Date.now() });
+	sessions.set(sessionID, { ws, authorized: false, active: true, lastAck: Date.now() });
 
 	Log('INFO', `New WebSocket connection established. Code: ${sessionID}`);
 
-	ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HELLO }));
+	const opCodeHash = HashObject(WEBSOCKET_OP_CODES);
+	ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.HELLO, d: { op_codes: opCodeHash } }));
 
 	ws.on('close', () => {
 		const session = sessions.get(sessionID);
@@ -300,6 +304,12 @@ wss.on('connection', (ws) => {
 				session.active = true;
 				session.ws = ws;
 			}
+			return;
+		}
+
+		const session = sessions.get(sessionID)!;
+		if (!session.authorized) {
+			// only thing you can do is heartbeat and identify
 			return;
 		}
 
