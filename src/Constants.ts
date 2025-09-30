@@ -17,6 +17,25 @@ const SECONDS = {
 
 const CORES_AVAILABLE = require('os').cpus().length;
 
+enum WebSocketOpCodes {
+	// connection ops (100-199)
+	HEARTBEAT = 100,
+	HEARTBEAT_ACK = 101,
+	OK = 102,
+	HELLO = 103,
+
+	// dispatch ops (200-299)
+	FLUSH_CACHE = 200,
+
+	// errors (400-499)
+	ERR_JSON_PARSE = 400,
+	ERR_JSON_FORMAT = 401,
+	ERR_UNKNOWN_OP_CODE = 402,
+	ERR_NO_RESPONSE = 403,
+
+	SHUTTING_DOWN = 499,
+}
+
 export {
 	ROOT_FOLDER,
 
@@ -29,5 +48,7 @@ export {
 
 	SECONDS,
 
-	CORES_AVAILABLE
+	CORES_AVAILABLE,
+
+	WebSocketOpCodes,
 }

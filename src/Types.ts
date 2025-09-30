@@ -1,4 +1,5 @@
 import {Request, Response} from 'express';
+import {WebSocketOpCodes} from "./Constants";
 
 export type JSONPrimitives = string | number | boolean | null;
 export type JSONValue = JSONPrimitives | JSONValue[] | { [key: string]: JSONValue };
@@ -53,24 +54,7 @@ export type DiscordGuild = {
 	features: string[];
 }
 
-export enum WebSocketOpCodes {
-	// connection ops (100-199)
-	HEARTBEAT = 100,
-	HEARTBEAT_ACK = 101,
-	OK = 102,
-	HELLO = 103,
 
-	// dispatch ops (200-299)
-	FLUSH_CACHE = 200,
-
-	// errors (400-499)
-	ERR_JSON_PARSE = 400,
-	ERR_JSON_FORMAT = 401,
-	ERR_UNKNOWN_OP_CODE = 402,
-	ERR_NO_RESPONSE = 403,
-
-	SHUTTING_DOWN = 499,
-}
 
 export type WebSocketPayload = {
 	op: WebSocketOpCodes;
