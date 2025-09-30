@@ -8,7 +8,7 @@ import ResolveIP from './Utils/ResolveIP';
 import {Log} from './Utils/Log';
 import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER} from './Constants';
 import {Database} from './Database';
-import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketOpCodes, WSEndpoint} from "./Types";
+import {IEndpoint, JSONObject, JSONPrimitiveStrings, WebSocketOpCodes, WebSocketPayload, WSEndpoint} from "./Types";
 import { WebSocketServer, WebSocket } from 'ws';
 import { createServer } from 'http';
 import {GenerateCode} from "./Utils/GenerateCode";
@@ -277,21 +277,19 @@ wss.on('connection', (ws) => {
 		try {
 			parsed = JSON.parse(rawMessage.toString());
 		} catch {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_PARSE_ERROR, d: { message: 'Invalid JSON format' } }));
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_PARSE }));
 		}
 
 		if (typeof parsed !== 'object' || parsed === null) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Payload must be a JSON object' } }));
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_FORMAT }));
 		}
 
 		if (typeof parsed.op !== 'number' || !(parsed.op in WebSocketOpCodes)) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'Unknown or missing operation code' } }));
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_UNKNOWN_OP_CODE }));
 		}
 
-		if (!sessions.has(parsed.code as unknown as string)) {
-			ws.send(JSON.stringify({ op: WebSocketOpCodes.INVALID_SESSION, d: { message: 'Invalid or missing session code' } }));
-			ws.close();
-			return;
+		if (typeof parsed.seq !== 'number' || parsed.seq < 0) {
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_FORMAT }));
 		}
 
 		if (parsed.op === WebSocketOpCodes.HEARTBEAT_ACK) {
@@ -308,18 +306,21 @@ wss.on('connection', (ws) => {
 
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.JSON_FORMAT_ERROR, d: { message: 'Data (d) must be a JSON object' } }));
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_JSON_FORMAT }));
 		}
 
 		const endpoint = WebSocketHandlers.get(parsed.op);
 		if (!endpoint) {
-			return ws.send(JSON.stringify({ op: WebSocketOpCodes.UNKNOWN_OP_CODE, d: { message: 'No handler for this operation code' } }));
+			return ws.send(JSON.stringify({ op: WebSocketOpCodes.ERR_UNKNOWN_OP_CODE }));
 		}
 
-		const response = await endpoint.handler(parsed.d as JSONObject)
+		const response = await endpoint.handler(parsed.d).catch((error: unknown) => {
+			Log('ERROR', error);
+			return { op: WebSocketOpCodes.ERR_NO_RESPONSE };
+		});
 		if (!response) return;
 
-		ws.send(JSON.stringify({ op: WebSocketOpCodes.SERVER_ACK, d: response }) );
+		ws.send(JSON.stringify(response));
 	});
 
 	setInterval(() => {
