@@ -299,15 +299,15 @@ wss.on('connection', (ws) => {
 		try {
 			parsed = JSON.parse(rawMessage.toString());
 		} catch {
-			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_PARSE }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_PARSE, d: { message: 'Failed to parse JSON' } }));
 		}
 
-		if (typeof parsed !== 'object' || parsed === null) {
-			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
+		if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT, d: { message: 'Parsed JSON is not an object' } }));
 		}
 
-		if (typeof parsed.op !== 'number' || !(parsed.op in WEBSOCKET_OP_CODES)) {
-			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE }));
+		if (typeof parsed.op !== 'number' || !AvailableOpCodes.has(parsed.op)) {
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE, d: { message: `Invalid or unknown operation code: ${parsed.op}` } }));
 		}
 		const session = sessions.get(sessionID);
 		if (!session) {
@@ -329,7 +329,7 @@ wss.on('connection', (ws) => {
 
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
-			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT, d: { message: 'Field "d" must be an object if provided' } }));
 		}
 
 		if (!session.authorized) {
@@ -374,7 +374,7 @@ wss.on('connection', (ws) => {
 		}
 
 		if (typeof parsed.seq !== 'number' || parsed.seq < 0) {
-			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT, d: { message: 'Field "seq" must be a non-negative integer' } }));
 		}
 
 		if (parsed.op === WEBSOCKET_OP_CODES.OK) {
@@ -384,12 +384,12 @@ wss.on('connection', (ws) => {
 
 		const endpoint = WebSocketHandlers.get(parsed.op);
 		if (!endpoint) {
-			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE }));
+			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_UNKNOWN_OP_CODE, d: { message: `No handler for operation code: ${parsed.op}` } }));
 		}
 
 		const response = await endpoint.handler(parsed.d).catch((error: unknown) => {
 			Log('ERROR', error);
-			return { op: WEBSOCKET_OP_CODES.ERR_NO_RESPONSE };
+			return { op: WEBSOCKET_OP_CODES.ERR_NO_RESPONSE, d: { message: 'Internal server error' } };
 		});
 		if (!response) return;
 
