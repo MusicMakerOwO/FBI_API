@@ -371,9 +371,9 @@ wss.on('connection', (ws) => {
 			return;
 		}
 
-		if (typeof parsed.seq !== 'number' || parsed.seq < 0) {
 		console.log(parsed);
 
+		if (typeof parsed.seq !== 'number' || parsed.seq < 0 || !Number.isInteger(parsed.seq)) {
 			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT, d: { message: 'Field "seq" must be a non-negative integer' } }));
 		}
 
