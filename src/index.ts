@@ -325,8 +325,6 @@ wss.on('connection', (ws) => {
 			return;
 		}
 
-		console.log(parsed);
-
 		parsed.d ??= {}; // null | undefined -> {}
 		if (typeof parsed.d !== 'object' || Array.isArray(parsed.d)) {
 			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT, d: { message: 'Field "d" must be an object if provided' } }));
@@ -374,6 +372,8 @@ wss.on('connection', (ws) => {
 		}
 
 		if (typeof parsed.seq !== 'number' || parsed.seq < 0) {
+		console.log(parsed);
+
 			return ws.send(JSON.stringify({ op: WEBSOCKET_OP_CODES.ERR_JSON_FORMAT, d: { message: 'Field "seq" must be a non-negative integer' } }));
 		}
 
