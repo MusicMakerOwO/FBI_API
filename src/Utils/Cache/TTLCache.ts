@@ -1,86 +1,66 @@
-import { SECONDS } from '../../Constants';
-
 export class TTLCache<T> {
-	cache: Map<string, { value: T; expiryTime: number; ttl: number }>;
-	interval: NodeJS.Timeout;
+	cache: Map<string, { value: T; expiryTime: number; }>;
+	ttl: number;
 
-	constructor(checkInterval = SECONDS.MINUTE * 1000) {
+	#nextEviction: string | null;
+
+	constructor(ttl: number) {
 		this.cache = new Map();
+		this.ttl = ttl;
 
-		// Start the interval to clean up expired items
-		this.interval = setInterval(() => this.cleanup(), checkInterval);
-	}
-
-	set(key: string, value: T, ttl: number = SECONDS.MINUTE * 10 * 1000) {
-		const expiryTime = Date.now() + ttl;
-		this.cache.set(key, { value, expiryTime, ttl });
-	}
-
-	delete(key: string) {
-		this.cache.delete(key);
-	}
-
-	#isExpired(item: { value: T; expiryTime: number; ttl: number }) {
-		return Date.now() > item.expiryTime;
+		this.#nextEviction = null;
 	}
 
 	has(key: string) {
-		const item = this.cache.get(key);
-		if (!item) return false;
-
-		if (this.#isExpired(item)) {
+		if (!this.cache.has(key)) return false;
+		const entry = this.cache.get(key)!;
+		if (Date.now() > entry.expiryTime) {
 			this.cache.delete(key);
 			return false;
 		}
-
 		return true;
 	}
 
+	#scheduleNextEviction() {
+		if (this.cache.size === 0) return;
 
-	get(key: string, touch = true) {
-		const item = this.cache.get(key);
-		if (!item) return null;
+		const nextItem = this.cache.entries().next().value;
+		if (!nextItem) return;
 
-		if (this.#isExpired(item)) {
+		const [key, entry] = nextItem;
+		const delay = entry.expiryTime - Date.now();
+		if (delay <= 0) {
+			this.#evict(key);
+			this.#scheduleNextEviction();
+		} else {
+			this.#nextEviction = key;
+			setTimeout(() => this.#evict(key), delay);
+		}
+	}
+
+	#evict(key: string) {
+		this.cache.delete(key);
+		this.#nextEviction = null;
+		this.#scheduleNextEviction();
+	}
+
+	set(key: string, value: T) {
+		const expiryTime = Date.now() + this.ttl;
+		this.cache.set(key, { value, expiryTime });
+
+		if (!this.#nextEviction) {
+			this.#nextEviction = key;
+			setTimeout(() => this.#evict(key), this.ttl);
+		}
+	}
+
+	get(key: string) {
+		if (!this.cache.has(key)) return null;
+		const entry = this.cache.get(key)!;
+		if (Date.now() > entry.expiryTime) {
 			this.cache.delete(key);
 			return null;
 		}
-
-		if (touch) {
-			// Update the expiry time to extend the TTL
-			item.expiryTime = Date.now() + item.ttl;
-			this.cache.set(key, item);
-		}
-
-		return item.value;
-	}
-
-	cleanup() {
-		for (const [key, item] of this.cache.entries()) {
-			if (this.#isExpired(item)) {
-				this.cache.delete(key);
-			}
-		}
-	}
-
-	destroy() {
-		clearInterval(this.interval);
-		this.cache.clear();
-	}
-
-	keys() {
-		return Array.from(this.cache.keys()).filter(key => this.has(key));
-	}
-
-	values() {
-		return Array.from(this.cache.values())
-			.filter(item => !this.#isExpired(item))
-			.map(item => item.value);
-	}
-
-	entries() {
-		return Array.from(this.cache.entries())
-			.filter(([key, item]) => !this.#isExpired(item))
-			.map(([key, item]) => [key, item.value]);
+		return entry.value;
 	}
 }

@@ -1,8 +1,8 @@
 import {DiscordGuild, DiscordUser} from "../../Types";
 import {TTLCache} from "../Cache/TTLCache";
 
-const userCache = new TTLCache<DiscordUser>(); // token -> DiscordUser
-const userGuildsCache = new TTLCache<PartialGuild[]>(); // token -> DiscordGuild[]
+const userCache = new TTLCache<DiscordUser>(1000 * 60 * 5); // token -> DiscordUser
+const userGuildsCache = new TTLCache<PartialGuild[]>(1000 * 60 * 30); // token -> DiscordGuild[]
 
 export async function GetUser(token: string): Promise<DiscordUser | null> {
 	if (userCache.has(token)) return userCache.get(token);
@@ -18,7 +18,7 @@ export async function GetUser(token: string): Promise<DiscordUser | null> {
 		throw new Error(`Error fetching user: ${response.error} - ${response.error_description}`);
 	}
 
-	userCache.set(token, response, 1000 * 60 * 5); // 30 minutes cache
+	userCache.set(token, response); // 30 minutes cache
 	return response;
 }
 
@@ -52,6 +52,6 @@ export async function GetGuilds(token: string): Promise< Map<string, PartialGuil
 		}
 	}
 
-	userGuildsCache.set(token, response, 1000 * 30); // 30 seconds cache
+	userGuildsCache.set(token, response); // 30 seconds cache
 	return new Map(response.map(g => [g.id, g]));
 }
