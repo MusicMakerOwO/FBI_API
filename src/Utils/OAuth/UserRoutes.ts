@@ -1,8 +1,8 @@
-import {DiscordGuild, DiscordUser} from "../../DiscordTypes";
+import {DiscordGuild_Partial, DiscordUser} from "../../DiscordTypes";
 import {TTLCache} from "../Cache/TTLCache";
 
 const userCache = new TTLCache<DiscordUser>(1000 * 60 * 5); // token -> DiscordUser
-const userGuildsCache = new TTLCache<PartialGuild[]>(1000 * 60 * 30); // token -> DiscordGuild[]
+const userGuildsCache = new TTLCache<DiscordGuild_Partial[]>(1000 * 60 * 30); // token -> DiscordGuild[]
 
 export async function GetUser(token: string): Promise<DiscordUser | null> {
 	if (userCache.has(token)) return userCache.get(token);
@@ -22,9 +22,7 @@ export async function GetUser(token: string): Promise<DiscordUser | null> {
 	return response;
 }
 
-type PartialGuild = Pick<DiscordGuild, 'id' | 'name' | 'icon' | 'owner' | 'permissions'>;
-
-export async function GetGuilds(token: string): Promise< Map<string, PartialGuild> > {
+export async function GetGuilds(token: string) {
 	if (userGuildsCache.has(token)) {
 		const guilds = userGuildsCache.get(token)!;
 		return new Map(guilds.map(g => [g.id, g]));
@@ -34,22 +32,11 @@ export async function GetGuilds(token: string): Promise< Map<string, PartialGuil
 		headers: {
 			Authorization: `Bearer ${token}`,
 		}
-	}).then(res => res.json()) as PartialGuild[] | { error: string, error_description: string };
+	}).then(res => res.json()) as DiscordGuild_Partial[] | { error: string, error_description: string };
 
 	if ('error' in response) {
 		console.log(response);
 		throw new Error(`Error fetching user guilds: ${response.error} - ${response.error_description}`);
-	}
-
-	for (let i = 0; i < response.length; i++) {
-		const guild = response[i];
-		response[i] = {
-			id: guild.id,
-			name: guild.name,
-			icon: guild.icon,
-			owner: guild.owner,
-			permissions: guild.permissions,
-		}
 	}
 
 	userGuildsCache.set(token, response); // 30 seconds cache
