@@ -1,7 +1,7 @@
 import {Request, Response} from 'express';
 
 export type JSONPrimitives = string | number | boolean | null;
-export type JSONValue = JSONPrimitives | JSONValue[] | { [key: string]: JSONValue };
+export type JSONValue = JSONPrimitives | JSONValue[] | JSONObject;
 export type JSONObject = { [key: string]: JSONValue };
 
 export type JSONPrimitiveStrings = 'string' | 'number' | 'boolean' | 'object' | 'array' | 'null';
