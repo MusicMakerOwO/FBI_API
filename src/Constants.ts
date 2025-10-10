@@ -42,6 +42,13 @@ const WEBSOCKET_OP_CODES = {
 	CRIT_SERVER_BUSY		: 500,
 }
 
+const FORMAT = {
+	TEXT: 'txt',
+	JSON: 'json',
+	CSV: 'csv',
+	HTML: 'html'
+}
+
 export {
 	ROOT_FOLDER,
 
@@ -57,4 +64,6 @@ export {
 	CORES_AVAILABLE,
 
 	WEBSOCKET_OP_CODES,
+
+	FORMAT
 }
