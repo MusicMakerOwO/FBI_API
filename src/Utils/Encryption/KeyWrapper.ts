@@ -9,12 +9,12 @@ const MASTER_KEY = Buffer.from(process.env.PEPPER!, 'base64');
  * @param wrappingKey
  * @returns {Buffer}
  */
-function WrapKey(keyToWrap: Buffer, wrappingKey: Buffer = MASTER_KEY): Buffer {
+export function WrapKey(keyToWrap: Buffer, wrappingKey: Buffer = MASTER_KEY): Buffer {
 	const iv = crypto.randomBytes(12);
 	const cipher = crypto.createCipheriv('aes-256-gcm', wrappingKey, iv);
 	const wrapped = Buffer.concat([cipher.update(keyToWrap), cipher.final()]);
 	const tag = cipher.getAuthTag();
-	return Buffer.concat([iv, tag, wrapped]); // 12 + 16 + length(wrapped)
+	return Buffer.concat([iv, wrapped, tag]); // 12 + 16 + length(wrapped)
 }
 
 /**
@@ -23,17 +23,12 @@ function WrapKey(keyToWrap: Buffer, wrappingKey: Buffer = MASTER_KEY): Buffer {
  * @param wrappingKey
  * @returns {Buffer}
  */
-function UnwrapKey(wrappedBlob: Buffer, wrappingKey: Buffer = MASTER_KEY): Buffer {
+export function UnwrapKey(wrappedBlob: Buffer, wrappingKey: Buffer = MASTER_KEY): Buffer {
 	if (wrappedBlob.length < 12 + 16) throw new Error('Invalid wrapped key length');
 	const iv = wrappedBlob.subarray(0, 12);
-	const tag = wrappedBlob.subarray(12, 28);
-	const encryptedKey = wrappedBlob.subarray(28);
+	const tag = wrappedBlob.subarray(wrappedBlob.length - 16);
+	const encryptedKey = wrappedBlob.subarray(12, wrappedBlob.length - 16);
 	const decipher = crypto.createDecipheriv('aes-256-gcm', wrappingKey, iv);
 	decipher.setAuthTag(tag);
 	return Buffer.concat([decipher.update(encryptedKey), decipher.final()]); // original key
-}
-
-export {
-	WrapKey,
-	UnwrapKey
 }
