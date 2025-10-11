@@ -6,6 +6,10 @@ config({
 	path: `${__dirname}/../../../.env`
 });
 
+function StringConcat( ... args: string[]) {
+	return args.join('-');
+}
+
 const MINUTE = 1000 * 60;
 
 const GuildCache   = new TTLCache<DiscordGuild  >(MINUTE * 30);
@@ -36,7 +40,7 @@ async function MakeDiscordRequest(endpoint: string) {
 
 function CreateFetchFunction<T extends {}>(cache: TTLCache<T>, endpoint: string) {
 	return async function ( ... ids: string[] ): Promise<T> {
-		const cacheKey = ids.join('-');
+		const cacheKey = StringConcat( ... ids );
 		if (cache.has(cacheKey)) return cache.get(cacheKey)!;
 
 		const endpointFormatted = endpoint.replace(/{(\d+)}/g, (_, index) => ids[parseInt(index)]);
