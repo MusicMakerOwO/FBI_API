@@ -1,11 +1,6 @@
 import { TTLCache } from '../Cache/TTLCache.js';
 import {DiscordChannel, DiscordGuild, DiscordMember, DiscordRole, DiscordUser} from "../../DiscordTypes";
 
-import { config } from 'dotenv';
-config({
-	path: `${__dirname}/../../../.env`
-});
-
 function StringConcat( ... args: string[]) {
 	return args.join('-');
 }
