@@ -2,13 +2,13 @@ export type DiscordGuild = {
 	id: string;
 	name: string;
 	icon: string | null;
-	icon_hash?: string;
+	icon_hash?: string | null;
 	splash: string | null;
-	discovery_splash?: string;
-	owner: boolean | null;
+	discovery_splash: string | null;
+	owner?: boolean;
 	owner_id: string;
-	permissions?: string; // bitfield as a string
-	afk_channel_id?: string | null;
+	permissions?: string;
+	afk_channel_id: string | null;
 	afk_timeout: number;
 	widget_enabled?: boolean;
 	widget_channel_id?: string | null;
@@ -17,21 +17,21 @@ export type DiscordGuild = {
 	explicit_content_filter: number;
 	roles: DiscordRole[];
 	emojis: DiscordEmoji[];
-	features: string[]; // array of guild feature strings
+	features: string[];
 	mfa_level: number;
-	application_id?: string | null;
-	system_channel_id?: string | null;
+	application_id: string | null;
+	system_channel_id: string | null;
 	system_channel_flags: number;
-	rules_channel_id?: string | null;
+	rules_channel_id: string | null;
 	max_presences?: number | null;
 	max_members?: number;
-	vanity_url_code?: string | null;
-	description?: string | null;
-	banner?: string | null;
+	vanity_url_code: string | null;
+	description: string | null;
+	banner: string | null;
 	premium_tier: number;
 	premium_subscription_count?: number;
 	preferred_locale: string;
-	public_updates_channel_id?: string | null;
+	public_updates_channel_id: string | null;
 	max_video_channel_users?: number;
 	max_stage_video_channel_users?: number;
 	approximate_member_count?: number;
@@ -40,15 +40,15 @@ export type DiscordGuild = {
 	nsfw_level: number;
 	stickers?: DiscordSticker[];
 	premium_progress_bar_enabled: boolean;
-	safety_alerts_channel_id?: string | null;
+	safety_alerts_channel_id: string | null;
 	incidents_data?: DiscordGuildIncidents;
 }
 
 export type DiscordWelcomeScreenChannel = {
 	channel_id: string;
 	description: string;
-	emoji_id?: string;
-	emoji_name?: string;
+	emoji_id: string | null;
+	emoji_name: string | null;
 }
 
 export type DiscordRole = {
@@ -56,8 +56,8 @@ export type DiscordRole = {
 	name: string;
 	color: number;
 	hoist: boolean;
-	icon?: string;
-	unicode_emoji?: string;
+	icon?: string | null;
+	unicode_emoji?: string | null;
 	position: number;
 	permissions: string;
 	managed: boolean;
@@ -76,8 +76,8 @@ export type DiscordRoleTags = {
 }
 
 export type DiscordEmoji = {
-	id?: string;
-	name?: string;
+	id: string | null;
+	name: string | null;
 	roles?: string[];
 	user?: DiscordUser;
 	require_colons?: boolean;
@@ -90,7 +90,7 @@ export type DiscordSticker = {
 	id: string;
 	pack_id?: string;
 	name: string;
-	description?: string;
+	description: string | null;
 	tags: string;
 	type: number;
 	format_type: number;
@@ -101,10 +101,10 @@ export type DiscordSticker = {
 }
 
 export type DiscordGuildIncidents = {
-	invites_disabled_until?: string;
-	dms_disabled_until?: string;
-	dm_spam_detected_at?: string;
-	raid_detected_at?: string;
+	invites_disabled_until: string | null;
+	dms_disabled_until: string | null;
+	dm_spam_detected_at?: string | null;
+	raid_detected_at?: string | null;
 }
 
 export type DiscordUser = {
@@ -124,8 +124,8 @@ export type DiscordUser = {
 	flags?: number;
 	premium_type?: number;
 	public_flags?: number;
-	avatar_decoration_data?: { asset: string; sku_id: string };
-	collectibles?: { nameplate?: DiscordCollectibles[] };
+	avatar_decoration_data?: { asset: string; sku_id: string } | null;
+	collectibles?: { nameplate?: DiscordCollectibles[] } | null;
 	/**
 	 * I don't know why but this is the user's badge
 	 * Horrible name for the property, I know, blame Discord
@@ -135,7 +135,7 @@ export type DiscordUser = {
 		identity_enabled?: boolean;
 		tag?: string;
 		badge?: string;
-	}
+	} | null;
 }
 
 export type DiscordCollectibles = {
@@ -151,7 +151,7 @@ export type DiscordMember = {
 	avatar?: string;
 	banner?: string;
 	roles: string[];
-	joined_at?: string;
+	joined_at: string | null;
 	premium_since?: string | null;
 	deaf: boolean;
 	mute: boolean;
@@ -159,7 +159,7 @@ export type DiscordMember = {
 	pending?: boolean;
 	permissions?: string;
 	communication_disabled_until?: string | null;
-	avatar_decoration_data?: { asset: string; sku_id: string };
+	avatar_decoration_data?: { asset: string; sku_id: string } | null;
 }
 
 export type DiscordChannel = {
@@ -167,16 +167,16 @@ export type DiscordChannel = {
 	type: number;
 	guild_id?: string;
 	position?: number;
-	permission_overwrites?: DiscordChannelOverwrite[];
-	name?: string;
-	topic?: string;
+	permission_overwrites?: DiscordChannelPermissionOverwrite[];
+	name?: string | null;
+	topic?: string | null;
 	nsfw?: boolean;
-	last_message_id?: string;
+	last_message_id?: string | null;
 	bitrate?: number;
 	user_limit?: number;
 	rate_limit_per_user?: number;
 	recipients?: DiscordUser[];
-	icon?: string;
+	icon?: string | null;
 	owner_id?: string;
 	application_id?: string;
 	managed?: boolean;
@@ -194,8 +194,8 @@ export type DiscordChannel = {
 	total_message_sent?: number;
 	available_tags?: DiscordChannelTag[];
 	applied_tags?: string[];
-	default_reaction_emoji?: { emoji_id?: string; emoji_name?: string; };
-	default_thread_rate_limit_per_user?: number | null;
+	default_reaction_emoji?: { emoji_id?: string; emoji_name?: string; } | null;
+	default_thread_rate_limit_per_user?: number;
 	default_sort_order?: number | null;
 	default_forum_layout?: number;
 }
@@ -217,7 +217,7 @@ export type DiscordChannelThreadMetadata = {
 	create_timestamp?: string | null;
 }
 
-export type DiscordChannelOverwrite = {
+export type DiscordChannelPermissionOverwrite = {
 	id: string;
 	type: number;
 	allow: string;
