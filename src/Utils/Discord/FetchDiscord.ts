@@ -38,7 +38,7 @@ async function MakeDiscordRequest(endpoint: string) {
 	return response.json();
 }
 
-function CreateFetchFunction<T extends {}>(cache: TTLCache<T>, endpoint: string) {
+function CreateFetchFunction<T extends {}>(cache: TTLCache<T>, endpoint: string, hook?: (data: T) => void) {
 	return async function ( ... ids: string[] ): Promise<T> {
 		const cacheKey = StringConcat( ... ids );
 		if (cache.has(cacheKey)) return cache.get(cacheKey)!;
@@ -51,12 +51,37 @@ function CreateFetchFunction<T extends {}>(cache: TTLCache<T>, endpoint: string)
 
 		cache.set(cacheKey, response);
 
+		if (hook) hook(response);
+
 		return response;
 	}
 }
 
-export const FetchDiscordGuild   = CreateFetchFunction<DiscordGuild  >(GuildCache  , 'guilds/{0}'            ) as (id: string) => Promise<DiscordGuild>;
-export const FetchDiscordUser    = CreateFetchFunction<DiscordUser   >(UserCache   , 'users/{0}'             ) as (id: string) => Promise<DiscordUser>;
-export const FetchDiscordMember  = CreateFetchFunction<DiscordMember >(MemberCache , 'guilds/{0}/members/{1}') as (guildID: string, userID: string) => Promise<DiscordMember>;
-export const FetchDiscordChannel = CreateFetchFunction<DiscordChannel>(ChannelCache, 'channels/{0}'          ) as (id: string) => Promise<DiscordChannel>;
-export const FetchDiscordRole    = CreateFetchFunction<DiscordRole   >(RoleCache   , 'guilds/{0}/roles/{1}'  ) as (guildID: string, roleID: string) => Promise<DiscordRole>;
+function GuildHook(guild: DiscordGuild) {
+	// guild data contains roles additionally, cache them too
+	for (const role of guild.roles) {
+		const key = StringConcat(guild.id, role.id);
+		RoleCache.set(key, role);
+	}
+}
+
+function MemberHook(member: DiscordMember) {
+	// member data contains user additionally, cache them too
+	if (member.user) {
+		UserCache.set(member.user.id, member.user);
+	}
+}
+
+function ChannelHook(channel: DiscordChannel) {
+	// channel data contains recipients (users) additionally, cache them too
+	if (channel.member && channel.member.user) {
+		const key = StringConcat(channel.guild_id!, channel.member.user.id);
+		MemberCache.set(key, channel.member);
+	}
+}
+
+export const FetchDiscordGuild   = CreateFetchFunction<DiscordGuild  >(GuildCache  , 'guilds/{0}'            , GuildHook  ) as (id: string) => Promise<DiscordGuild>;
+export const FetchDiscordUser    = CreateFetchFunction<DiscordUser   >(UserCache   , 'users/{0}'             ,            ) as (id: string) => Promise<DiscordUser>;
+export const FetchDiscordMember  = CreateFetchFunction<DiscordMember >(MemberCache , 'guilds/{0}/members/{1}', MemberHook ) as (guildID: string, userID: string) => Promise<DiscordMember>;
+export const FetchDiscordChannel = CreateFetchFunction<DiscordChannel>(ChannelCache, 'channels/{0}'          , ChannelHook) as (id: string) => Promise<DiscordChannel>;
+export const FetchDiscordRole    = CreateFetchFunction<DiscordRole   >(RoleCache   , 'guilds/{0}/roles/{1}'  ,            ) as (guildID: string, roleID: string) => Promise<DiscordRole>;
