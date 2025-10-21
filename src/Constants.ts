@@ -1,7 +1,8 @@
 const ROOT_FOLDER = __dirname;
 
-const DB_SETUP_FILE = `${ROOT_FOLDER}/../DB_SETUP.sql`;
-const ROUTES_FOLDER = `${ROOT_FOLDER}/Routes`;
+const DB_SETUP_FILE    = `${ROOT_FOLDER}/../DB_SETUP.sql`;
+const ROUTES_FOLDER    = `${ROOT_FOLDER}/Routes`;
+const WEBSOCKET_FOLDER = `${ROOT_FOLDER}/WebSocket`;
 
 const AVAILABLE_METHODS = new Set(['GET', 'POST', 'DELETE', 'PUT', 'PATCH']);
 const PRIMITIVE_TYPES = new Set(['string', 'number', 'boolean', 'array', 'object']);
@@ -51,10 +52,9 @@ const FORMAT = {
 
 export {
 	ROOT_FOLDER,
-
 	DB_SETUP_FILE,
-
 	ROUTES_FOLDER,
+	WEBSOCKET_FOLDER,
 
 	AVAILABLE_METHODS,
 	PRIMITIVE_TYPES,
