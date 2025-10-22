@@ -18,7 +18,6 @@ export default {
 
 		if (!req.body) return res.status(400).send('No body provided');
 		const { shardID, guilds, messages, users, snapshots } = req.body as Record<string, number>;
-		console.log('Received stats:', req.body);
 
 		// don't care about the results, just respond quickly
 		Database.query(`

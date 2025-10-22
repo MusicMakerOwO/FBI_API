@@ -13,8 +13,7 @@ export default {
 				SUM(snapshots) as snapshots,
 				MAX(updated_at) as last_updated
 			FROM BotStats
-		`).then((results) => results[0]);
-		console.log('Fetched stats:', stats);
+		`).then(x => x[0]);
 
 		return stats;
 	}
