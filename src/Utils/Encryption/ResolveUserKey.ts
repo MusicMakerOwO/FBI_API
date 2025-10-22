@@ -1,7 +1,7 @@
 import {Database} from '../../Database';
 import {LRUCache} from "../Cache/LRUCache";
 
-const cache = new LRUCache<Buffer>(1000); // userID -> key
+const cache = new LRUCache<string, Buffer>(1000); // userID -> key
 
 export async function ResolveUserKey(userID: string): Promise<Buffer | null> {
 	if (cache.has(userID)) return cache.get(userID); // buffer

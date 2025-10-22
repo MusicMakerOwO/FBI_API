@@ -1,17 +1,17 @@
-export class LRUCache <T> {
+export class LRUCache <K extends string | number, V> {
 	size: number;
-	cache: Map<string, T>;
+	cache: Map<K, V>;
 
 	constructor(size: number) {
 		this.size = size;
 		this.cache = new Map();
 	}
 
-	has(key: string) {
+	has(key: K) {
 		return this.cache.has(key);
 	}
 
-	set(key: string, value: T) {
+	set(key: K, value: V) {
 		if (this.cache.has(key)) {
 			this.cache.delete(key);
 			this.cache.set(key, value);
@@ -26,7 +26,7 @@ export class LRUCache <T> {
 		this.cache.set(key, value);
 	}
 
-	get(key: string) {
+	get(key: K) {
 		if (!this.cache.has(key)) return null;
 
 		const value = this.cache.get(key)!;
@@ -37,7 +37,7 @@ export class LRUCache <T> {
 		return value;
 	}
 
-	delete(key: string) {
+	delete(key: K) {
 		return this.cache.delete(key);
 	}
 }
