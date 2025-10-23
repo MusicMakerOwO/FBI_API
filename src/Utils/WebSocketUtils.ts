@@ -3,7 +3,7 @@ import {WebSocket, WebSocketServer} from 'ws';
 import {Log} from "./Log";
 import {WEBSOCKET_FOLDER, WEBSOCKET_OP_CODES} from "../Constants";
 import * as WebSocketWrapper from "./WebSocketWrapper";
-import {JSONObject, WebSocketPayload, WSEndpoint} from "../Types";
+import {JSONObject, WebSocketPayload, WSEndpoint} from "../Typings/Types";
 import {HashObject} from "./HashObject";
 import {SecureStringTest} from "./SecureStringTest";
 import ReadFolder from "./ReadFolder";

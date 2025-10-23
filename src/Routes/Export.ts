@@ -1,4 +1,4 @@
-import {IEndpoint} from "../Types";
+import {IEndpoint} from "../Typings/Types";
 import {Request, Response} from "express";
 import {Export} from "../Utils/Processing/Export";
 

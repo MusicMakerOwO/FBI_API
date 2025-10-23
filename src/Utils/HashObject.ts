@@ -1,4 +1,4 @@
-import {JSONObject} from "../Types";
+import {JSONObject} from "../Typings/Types";
 import {createHash} from 'crypto';
 
 export function HashObject(obj: JSONObject): string {

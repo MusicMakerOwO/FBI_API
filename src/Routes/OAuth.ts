@@ -23,7 +23,7 @@ app.get('/auth', async (req, res) => {
 */
 
 import { Request, Response } from 'express';
-import { IEndpoint } from '../Types';
+import { IEndpoint } from '../Typings/Types';
 import {ExchangeOAuthCode} from "../Utils/ExchangeOAuthCode";
 import {WrapKey} from "../Utils/Encryption/KeyWrapper";
 

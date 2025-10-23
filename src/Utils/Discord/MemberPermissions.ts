@@ -1,4 +1,4 @@
-import {DiscordChannel, DiscordGuild, DiscordMember} from "../../DiscordTypes";
+import {DiscordChannel, DiscordGuild, DiscordMember} from "../../Typings/DiscordTypes";
 import {FetchDiscordRole} from "./FetchDiscord";
 import {DISCORD_PERMISSIONS} from "./Permissions";
 

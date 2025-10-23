@@ -8,7 +8,7 @@ import ResolveIP from './Utils/ResolveIP';
 import {Log} from './Utils/Log';
 import {AVAILABLE_METHODS, PRIMITIVE_TYPES, ROUTES_FOLDER} from './Constants';
 import {Database} from './Database';
-import {IEndpoint, JSONPrimitiveStrings} from "./Types";
+import {IEndpoint, JSONPrimitiveStrings} from "./Typings/Types";
 import {createServer} from 'http';
 import {InitializeWebSocket, ShutdownWebSocket} from "./Utils/WebSocketUtils";
 

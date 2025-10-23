@@ -1,5 +1,5 @@
 import { TTLCache } from '../Cache/TTLCache.js';
-import {DiscordChannel, DiscordGuild, DiscordMember, DiscordRole, DiscordUser} from "../../DiscordTypes";
+import {DiscordChannel, DiscordGuild, DiscordMember, DiscordRole, DiscordUser} from "../../Typings/DiscordTypes";
 
 function StringConcat( ... args: string[]) {
 	return args.join('-');

@@ -6,7 +6,7 @@ import {
 	DB_Snapshot_Permission,
 	DB_Snapshot_Role,
 	DB_User
-} from "../../DatabaseTypes";
+} from "../../Typings/DatabaseTypes";
 
 export type SimpleGuild = Pick<DB_Guild, 'id' | 'name' | 'asset_id'>;
 export type SimpleChannel = Pick<DB_Snapshot_Channel, 'id' | 'type' | 'name' | 'position' | 'topic' | 'nsfw' | 'parent_id'>;

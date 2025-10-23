@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { IEndpoint } from '../../Types';
+import { IEndpoint } from '../../Typings/Types';
 
 export default {
 	route: '/invite',

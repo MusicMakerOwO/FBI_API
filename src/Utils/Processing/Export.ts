@@ -24,7 +24,7 @@ import {
 	DB_Message,
 	DB_Sticker,
 	DB_User
-} from "../../DatabaseTypes";
+} from "../../Typings/DatabaseTypes";
 
 const missingAsset = readFileSync(`${__dirname}/../../../missing.png`);
 

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { IEndpoint } from '../../Types';
+import { IEndpoint } from '../../Typings/Types';
 import {GetGuilds} from "../../Utils/OAuth/UserRoutes";
 import {ResolveToken} from "../../Utils/OAuth/ResolveToken";
 

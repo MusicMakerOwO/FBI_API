@@ -1,4 +1,4 @@
-import {IEndpoint} from "../Types";
+import {IEndpoint} from "../Typings/Types";
 
 export default {
 	route: '/uptime',

@@ -1,4 +1,4 @@
-import {DiscordGuild_Partial, DiscordUser} from "../../DiscordTypes";
+import {DiscordGuild_Partial, DiscordUser} from "../../Typings/DiscordTypes";
 import {TTLCache} from "../Cache/TTLCache";
 
 const userCache = new TTLCache<DiscordUser>(1000 * 60 * 5); // token -> DiscordUser
