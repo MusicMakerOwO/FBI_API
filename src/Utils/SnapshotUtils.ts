@@ -30,17 +30,21 @@ export async function ListSnapshots(guildID: string) {
 	return snapshotList;
 }
 
-const SnapshotGuildCache = new LRUCache<number, string>(1000);
-async function ResolveGuildIDFromSnapshot(snapshotID: number) {
+const SnapshotGuildCache = new LRUCache<number, string | undefined>(1000);
+/**
+ * Guild ID will be undefined only if the snapshot does not exist
+ * @param snapshotID
+ */
+export async function ResolveGuildIDFromSnapshot(snapshotID: number) {
 	if (SnapshotGuildCache.has(snapshotID)) return SnapshotGuildCache.get(snapshotID)!;
 
-	const snapshotData = await Database.query(`
+	const guildID = await Database.query(`
 		SELECT guild_id FROM FBI.Snapshots
 		WHERE id = ?
-	`, [snapshotID]).then(res => res[0]) as DB_Snapshot;
+	`, [snapshotID]).then(res => res[0]?.guild_id) as string | undefined;
 
-	SnapshotGuildCache.set(snapshotID, snapshotData.guild_id);
-	return snapshotData.guild_id;
+	SnapshotGuildCache.set(snapshotID, guildID);
+	return guildID;
 }
 
 /**
@@ -49,6 +53,8 @@ async function ResolveGuildIDFromSnapshot(snapshotID: number) {
  */
 export async function PinSnapshot(snapshotID: number, pinned: boolean) {
 	const guildID = await ResolveGuildIDFromSnapshot(snapshotID);
+	if (!guildID) throw new Error('Snapshot does not exist');
+
 	const maxSnapshots = await MaxSnapshots(guildID);
 
 	const snapshotList = await ListSnapshots(guildID);
@@ -77,6 +83,7 @@ export async function FetchSnapshot(snapshotID: number) {
 	if (SnapshotCache.has(snapshotID)) return SnapshotCache.get(snapshotID);
 
 	const guildID = await ResolveGuildIDFromSnapshot(snapshotID);
+	if (!guildID) throw new Error('Snapshot does not exist');
 
 	const roles       = new Map<string, DB_Snapshot_Role      >();
 	const channels    = new Map<string, DB_Snapshot_Channel   >();
