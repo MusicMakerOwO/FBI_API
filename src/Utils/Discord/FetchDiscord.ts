@@ -80,3 +80,21 @@ export const FetchDiscordUser    = CreateFetchFunction<DiscordUser   >(UserCache
 export const FetchDiscordMember  = CreateFetchFunction<DiscordMember >(MemberCache , 'guilds/{0}/members/{1}', MemberHook ) as (guildID: string, userID: string) => Promise<DiscordMember>;
 export const FetchDiscordChannel = CreateFetchFunction<DiscordChannel>(ChannelCache, 'channels/{0}'          , ChannelHook) as (id: string) => Promise<DiscordChannel>;
 export const FetchDiscordRole    = CreateFetchFunction<DiscordRole   >(RoleCache   , 'guilds/{0}/roles/{1}'  ,            ) as (guildID: string, roleID: string) => Promise<DiscordRole>;
+
+const oauthCache = new TTLCache<DiscordUser>(MINUTE * 10); // token -> DiscordUser
+export async function FetchOAuthUser(token: string): Promise<DiscordUser> {
+	if (oauthCache.has(token)) return oauthCache.get(token)!;
+
+	const response = await fetch('https://discord.com/api/v10/users/@me', {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		}
+	}).then(res => res.json()) as DiscordUser | API_Error;
+
+	if ('code' in response) {
+		throw new Error(`Discord API error: ${response.code} - ${response.message}`);
+	}
+
+	oauthCache.set(token, response);
+	return response;
+}
