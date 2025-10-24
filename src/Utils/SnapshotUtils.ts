@@ -68,6 +68,10 @@ export async function PinSnapshot(snapshotID: number, pinned: boolean) {
 		SET pinned = ?
 		WHERE id = ?
 	`, [pinned, snapshotID]);
+
+	// invalidate caches - force a fresh fetch next time
+	GuildSnapshotCache.delete(guildID);
+	SnapshotCache.delete(snapshotID);
 }
 
 type SnapshotData = DB_Snapshot & {
