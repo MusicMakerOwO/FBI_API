@@ -227,6 +227,11 @@ export type DiscordChannelPermissionOverwrite = {
 	deny: string;
 }
 
+export type DiscordBan = {
+	user: DiscordUser;
+	reason: string | null;
+}
+
 /**
  * This is only a partial guild object due to oauth restrictions.
  * The data contained here should be enough for most use cases but many items are missing.
