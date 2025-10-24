@@ -81,6 +81,8 @@ export const FetchDiscordMember  = CreateFetchFunction<DiscordMember >(MemberCac
 export const FetchDiscordChannel = CreateFetchFunction<DiscordChannel>(ChannelCache, 'channels/{0}'          , ChannelHook) as (id: string) => Promise<DiscordChannel>;
 export const FetchDiscordRole    = CreateFetchFunction<DiscordRole   >(RoleCache   , 'guilds/{0}/roles/{1}'  ,            ) as (guildID: string, roleID: string) => Promise<DiscordRole>;
 
+// can't use the generic function for OAuth user fetching
+// endpoints requires the token be put in the headers, other routes just use bot auth
 const oauthCache = new TTLCache<DiscordUser>(MINUTE * 10); // token -> DiscordUser
 export async function FetchOAuthUser(token: string): Promise<DiscordUser> {
 	if (oauthCache.has(token)) return oauthCache.get(token)!;
