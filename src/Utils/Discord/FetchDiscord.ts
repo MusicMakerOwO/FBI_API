@@ -13,12 +13,12 @@ const MemberCache  = new TTLCache<DiscordMember >(MINUTE     ); // 1 minute ttl,
 const ChannelCache = new TTLCache<DiscordChannel>(MINUTE * 10);
 const RoleCache    = new TTLCache<DiscordRole   >(MINUTE * 10);
 
-type API_Error = {
+export type DiscordAPIError = {
 	code: number;
 	message: string;
 }
 
-export async function MakeDiscordRequest(endpoint: string) {
+export async function MakeDiscordRequest<T extends Object>(endpoint: string) {
 	const response = await fetch(`https://discord.com/api/v10/${endpoint}`, {
 		headers: {
 			Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
@@ -26,11 +26,7 @@ export async function MakeDiscordRequest(endpoint: string) {
 		}
 	});
 
-	if (!response.ok) {
-		return await response.json() as Promise<API_Error>;
-	}
-
-	return response.json();
+	return await response.json() as T | DiscordAPIError;
 }
 
 function CreateFetchFunction<T extends {}>(cache: TTLCache<T>, endpoint: string, hook?: (data: T) => void) {
@@ -91,7 +87,7 @@ export async function FetchOAuthUser(token: string): Promise<DiscordUser> {
 		headers: {
 			Authorization: `Bearer ${token}`,
 		}
-	}).then(res => res.json()) as DiscordUser | API_Error;
+	}).then(res => res.json()) as DiscordUser | DiscordAPIError;
 
 	if ('code' in response) {
 		throw new Error(`Discord API error: ${response.code} - ${response.message}`);
