@@ -7,6 +7,14 @@ import {
 	DB_Snapshot_Role,
 	DB_User
 } from "../../Typings/DatabaseTypes";
+import {
+	DiscordBan,
+	DiscordChannel,
+	DiscordChannelPermissionOverwrite,
+	DiscordGuild,
+	DiscordRole,
+	DiscordUser
+} from "../../Typings/DiscordTypes";
 
 export type SimpleGuild = Pick<DB_Guild, 'id' | 'name' | 'asset_id'>;
 export type SimpleChannel = Pick<DB_Snapshot_Channel, 'id' | 'type' | 'name' | 'position' | 'topic' | 'nsfw' | 'parent_id'>;
@@ -20,7 +28,7 @@ export function PermKey(channelID: string, roleID: string) {
 	return `${channelID}-${roleID}`;
 }
 
-export function SimplifyChannel(channel: DB_Channel | DB_Snapshot_Channel): SimpleChannel {
+export function SimplifyChannel(channel: DiscordChannel | DB_Channel | DB_Snapshot_Channel): SimpleChannel {
 	return {
 		id: channel.id,
 		type: channel.type ?? 0,
@@ -32,7 +40,7 @@ export function SimplifyChannel(channel: DB_Channel | DB_Snapshot_Channel): Simp
 	}
 }
 
-export function SimplifyRole(role: DB_Snapshot_Role): SimpleRole {
+export function SimplifyRole(role: DB_Snapshot_Role | DiscordRole): SimpleRole {
 	return {
 		id: role.id,
 		name: role.name ?? 'Unknown',
@@ -44,19 +52,20 @@ export function SimplifyRole(role: DB_Snapshot_Role): SimpleRole {
 	}
 }
 
-export function SimplifyPermission(channelID: string, permission: DB_Snapshot_Permission): SimplePermission {
+export function SimplifyPermission(channelID: string, permission: DiscordChannelPermissionOverwrite | DB_Snapshot_Permission): SimplePermission {
 	return {
-		id: PermKey(channelID, permission.role_id as string),
+		id: PermKey(channelID, 'role_id' in permission ? permission.role_id : permission.id),
 		channel_id: channelID,
-		role_id: permission.role_id,
-		allow: permission.allow ?? 0n,
-		deny: permission.deny ?? 0n
+		role_id: 'role_id' in permission ? permission.role_id : permission.id,
+		// NaN could throw an error here but that would indicate a much larger issue
+		allow: BigInt(permission.allow),
+		deny: BigInt(permission.deny)
 	}
 }
 
-export function SimplifyBan(ban: DB_Snapshot_Ban): SimpleBan {
+export function SimplifyBan(ban: DiscordBan | DB_Snapshot_Ban): SimpleBan {
 	return {
-		user_id: ban.user_id,
+		user_id: 'user_id' in ban ? ban.user_id : ban.user.id,
 		reason: ban.reason ?? 'No reason provided',
 	}
 }
@@ -72,19 +81,19 @@ export function SimplifyMessage(message: DB_Message): SimpleMessage {
 	};
 }
 
-export function SimplifyUser(user: DB_User): SimpleUser {
+export function SimplifyUser(user: DiscordUser | DB_User): SimpleUser {
 	return {
 		id: user.id,
 		username: user.username,
-		bot: user.bot,
-		asset_id: user.asset_id
+		bot: user.bot ? 1 : 0,
+		asset_id: 'asset_id' in user ? user.asset_id : null
 	}
 }
 
-export function SimplifyGuild(guild: DB_Guild): SimpleGuild {
+export function SimplifyGuild(guild: DiscordGuild | DB_Guild): SimpleGuild {
 	return {
 		id: guild.id,
 		name: guild.name,
-		asset_id: guild.asset_id
+		asset_id: 'asset_id' in guild ? guild.asset_id : null
 	}
 }
