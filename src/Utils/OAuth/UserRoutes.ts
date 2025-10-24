@@ -1,8 +1,8 @@
 import {DiscordGuild_Partial, DiscordUser} from "../../Typings/DiscordTypes";
 import {TTLCache} from "../Cache/TTLCache";
 
-const userCache = new TTLCache<DiscordUser>(1000 * 60 * 5); // token -> DiscordUser
-const userGuildsCache = new TTLCache<DiscordGuild_Partial[]>(1000 * 60 * 30); // token -> DiscordGuild[]
+const userCache = new TTLCache<DiscordUser>(1000 * 60 * 30); // token -> DiscordUser
+const userGuildsCache = new TTLCache<DiscordGuild_Partial[]>(1000 * 60); // token -> DiscordGuild[]
 
 export async function GetUser(token: string): Promise<DiscordUser | null> {
 	if (userCache.has(token)) return userCache.get(token);
