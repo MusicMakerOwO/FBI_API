@@ -156,10 +156,100 @@ export async function FetchSnapshot(snapshotID: number) {
 }
 
 export async function DeleteSnapshot(snapshotID: number) {
-	const snapshotData = await Database.query(`
-		SELECT * FROM FBI.Snapshots
-		WHERE id = ?
-	`, [snapshotID]).then(res => res[0]) as DB_Snapshot;
+	const guildID = await ResolveGuildIDFromSnapshot(snapshotID);
+	if (!guildID) throw new Error('Snapshot does not exist');
 
+	const snapshotList = await ListSnapshots(guildID);
+	if (!snapshotList.find(s => s.id === snapshotID)) throw new Error('Snapshot does not exist');
+
+	const snapshotData = snapshotList.find(s => s.id === snapshotID)!;
 	if (snapshotData.pinned) throw new Error('Cannot delete a pinned snapshot');
+
+	const tables = [
+		{
+			name: 'SnapshotRoles',
+			idColumn: 'id'
+		},
+		{
+			name: 'SnapshotChannels',
+			idColumn: 'id'
+		},
+		{
+			name: 'SnapshotPermissions',
+			idColumn: 'id'
+		},
+		{
+			name: 'SnapshotBans',
+			idColumn: 'user_id'
+		}
+	]
+
+	const connection = await Database.getConnection();
+
+	const promiseQueue = [];
+
+	if (snapshotList[0].id === snapshotID) {
+		// this is the most recent snapshot, we don't have to do any merging
+		for (const table of tables) {
+			promiseQueue.push(
+				connection.query(`
+					DELETE FROM FBI.${table.name}
+					WHERE snapshot_id = ?
+				`, [snapshotID])
+			);
+		}
+	} else {
+		// not the most recent snapshot, we have to merge the changes into the next snapshot
+
+		const nextSnapshotID = snapshotList[ snapshotList.findIndex(s => s.id === snapshotID) - 1 ].id;
+
+		for (const table of tables) {
+			promiseQueue.push(
+				// delete entries that exist in the next snapshot
+				connection.query(`
+                    DELETE FROM ${table.name}
+                    WHERE snapshot_id = ?
+                      AND EXISTS (
+                        SELECT 1
+                        FROM ${table.name} AS next
+                        WHERE next.snapshot_id = ?
+                          AND next.${table.idColumn} = ${table.name}.${table.idColumn}
+                    )
+				`, [snapshotID, nextSnapshotID]),
+
+				// move over entries that don't exist in the next snapshot
+				connection.query(`
+					UPDATE ${table.name}
+					SET snapshot_id = ?
+					WHERE snapshot_id = ?
+					AND NOT EXISTS (
+						SELECT 1
+						FROM ${table.name} AS next
+						WHERE next.snapshot_id = ?
+						AND next.${table.idColumn} = ${table.name}.${table.idColumn}
+					)
+				`, [nextSnapshotID, snapshotID, nextSnapshotID]),
+
+				// delete any remaining entries (should be none, but just in case)
+				connection.query(`
+					DELETE FROM ${table.name}
+					WHERE snapshot_id = ?
+				`, [snapshotID])
+			);
+		}
+
+		await Promise.all(promiseQueue);
+
+		// and finally delete the snapshot entry itself
+		await connection.query(`
+			DELETE FROM FBI.Snapshots
+			WHERE id = ?
+		`, [snapshotID]);
+
+		Database.releaseConnection(connection);
+
+		// invalidate caches - force a fresh fetch next time
+		GuildSnapshotCache.delete(guildID);
+		SnapshotCache.delete(snapshotID);
+	}
 }
