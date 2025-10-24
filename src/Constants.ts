@@ -1,24 +1,24 @@
-const ROOT_FOLDER = __dirname;
+export const ROOT_FOLDER = __dirname;
 
-const DB_SETUP_FILE    = `${ROOT_FOLDER}/../DB_SETUP.sql`;
-const ROUTES_FOLDER    = `${ROOT_FOLDER}/Routes`;
-const WEBSOCKET_FOLDER = `${ROOT_FOLDER}/WebSocket`;
+export const DB_SETUP_FILE    = `${ROOT_FOLDER}/../DB_SETUP.sql`;
+export const ROUTES_FOLDER    = `${ROOT_FOLDER}/Routes`;
+export const WEBSOCKET_FOLDER = `${ROOT_FOLDER}/WebSocket`;
 
-const AVAILABLE_METHODS = new Set(['GET', 'POST', 'DELETE', 'PUT', 'PATCH']);
-const PRIMITIVE_TYPES = new Set(['string', 'number', 'boolean', 'array', 'object']);
+export const AVAILABLE_METHODS = new Set(['GET', 'POST', 'DELETE', 'PUT', 'PATCH']);
+export const PRIMITIVE_TYPES = new Set(['string', 'number', 'boolean', 'array', 'object']);
 
-const SECONDS = {
+export const SECONDS = {
 	MINUTE: 60,
 	HOUR: 	60 * 60,
 	DAY: 	60 * 60 * 24,
 	WEEK: 	60 * 60 * 24 * 7,
 	MONTH: 	60 * 60 * 24 * 30,
 	YEAR: 	60 * 60 * 24 * 365
-}
+} as const;
 
-const CORES_AVAILABLE = require('os').cpus().length;
+export const CORES_AVAILABLE = require('os').cpus().length;
 
-const WEBSOCKET_OP_CODES = {
+export const WEBSOCKET_OP_CODES = {
 	// connection ops (100-199)
 	HEARTBEAT		: 100,
 	HEARTBEAT_ACK	: 101,
@@ -41,37 +41,17 @@ const WEBSOCKET_OP_CODES = {
 
 	// critical errors (500-599)
 	CRIT_SERVER_BUSY		: 500,
-}
+} as const;
 
-const FORMAT = {
+export const FORMAT = {
 	TEXT: 'txt',
 	JSON: 'json',
 	CSV: 'csv',
 	HTML: 'html'
-}
+} as const;
 
-const SNAPSHOT_TYPE = {
+export const SNAPSHOT_TYPE = {
 	AUTOMATIC: 0,
 	MANUAL: 1,
 	IMPORT: 2
-}
-
-export {
-	ROOT_FOLDER,
-	DB_SETUP_FILE,
-	ROUTES_FOLDER,
-	WEBSOCKET_FOLDER,
-
-	AVAILABLE_METHODS,
-	PRIMITIVE_TYPES,
-
-	SECONDS,
-
-	CORES_AVAILABLE,
-
-	WEBSOCKET_OP_CODES,
-
-	FORMAT,
-
-	SNAPSHOT_TYPE
-}
+} as const;
