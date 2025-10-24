@@ -63,4 +63,8 @@ export class TTLCache<T> {
 		}
 		return entry.value;
 	}
+
+	delete(key: string) {
+		this.cache.delete(key);
+	}
 }
