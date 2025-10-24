@@ -219,7 +219,10 @@ export type DiscordChannelThreadMetadata = {
 
 export type DiscordChannelPermissionOverwrite = {
 	id: string;
-	type: number;
+	/**
+	 * 1 = role, 0 = member
+	 */
+	type: 1 | 0;
 	allow: string;
 	deny: string;
 }
