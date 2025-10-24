@@ -19,20 +19,8 @@ export default {
 		const guildID = await ResolveGuildIDFromSnapshot(snapshotID);
 		if (!guildID) return { status: 404, message: 'Snapshot not found' };
 
-		const [ token, expiresAt ] = ResolveToken(req);
-		if (expiresAt < Date.now()) return { status: 401, message: 'Session expired' };
-
-		const userGuilds = await GetGuilds(token);
-		if (!userGuilds.has(guildID)) return { status: 401, message: 'You are not a member of this server' }
-
-		// so many API calls sob
-		const user = await FetchOAuthUser(token);
-		const guild = await FetchDiscordGuild(guildID);
-		const member = await FetchDiscordMember(guildID, user.id);
-
-		// can be very expensive to call in some cases
-		// thankfully guild fetching caches all roles automatically
-		const permissions = await GlobalMemberPermissions(guild, member);
+		const permissions = await ResolvePermissionsFromRequest(req, guildID);
+		if (typeof permissions === 'object') return permissions;
 
 		if ((permissions & DISCORD_PERMISSIONS.MANAGE_GUILD) === 0n) {
 			return { status: 403, message: 'You do not have permission to access snapshots' };
