@@ -96,5 +96,6 @@ export async function FetchOAuthUser(token: string): Promise<DiscordUser> {
 	}
 
 	oauthCache.set(token, response);
+	UserCache.set(response.id, response); // also save to user cache
 	return response;
 }
