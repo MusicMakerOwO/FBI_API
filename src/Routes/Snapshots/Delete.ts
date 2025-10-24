@@ -6,7 +6,7 @@ import {ResolvePermissionsFromRequest} from "../../Utils/Discord/ResolvePermissi
 
 export default {
 	method: 'DELETE',
-	route: '/snapshots',
+	route: '/snapshot',
 	queries: [ 'id' ],
 	handler: async function (req: Request, res: Response) {
 		// the '0' forces everything to be a number instead of NaN

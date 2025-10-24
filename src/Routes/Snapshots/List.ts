@@ -5,7 +5,7 @@ import {ResolvePermissionsFromRequest} from "../../Utils/Discord/ResolvePermissi
 
 export default {
 	method: 'GET',
-	route: '/snapshots/list',
+	route: '/snapshot/list',
 	queries: [ 'guild_id' ],
 	handler: async function (req: Request, res: Response) {
 		const guildID = String(req.query.guild_id);

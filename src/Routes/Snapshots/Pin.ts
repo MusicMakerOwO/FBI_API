@@ -6,7 +6,7 @@ import {ResolvePermissionsFromRequest} from "../../Utils/Discord/ResolvePermissi
 
 export default {
 	method: 'POST',
-	route: '/snapshots/pin',
+	route: '/snapshot/pin',
 	queries: [ 'id', 'pinned' ],
 	handler: async function (req: Request, res: Response) {
 		// the '0' forces everything to be a number instead of NaN
