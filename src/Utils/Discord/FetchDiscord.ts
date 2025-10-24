@@ -18,7 +18,7 @@ type API_Error = {
 	message: string;
 }
 
-async function MakeDiscordRequest(endpoint: string) {
+export async function MakeDiscordRequest(endpoint: string) {
 	const response = await fetch(`https://discord.com/api/v10/${endpoint}`, {
 		headers: {
 			Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
