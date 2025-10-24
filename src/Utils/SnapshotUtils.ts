@@ -81,7 +81,7 @@ type SnapshotEntity = DB_Snapshot_Role | DB_Snapshot_Channel | DB_Snapshot_Permi
 
 const SnapshotCache = new LRUCache<number, SnapshotData>(200); // save up to 200 snapshots
 export async function FetchSnapshot(snapshotID: number) {
-	if (SnapshotCache.has(snapshotID)) return SnapshotCache.get(snapshotID);
+	if (SnapshotCache.has(snapshotID)) return SnapshotCache.get(snapshotID)!;
 
 	const guildID = await ResolveGuildIDFromSnapshot(snapshotID);
 	if (!guildID) throw new Error('Snapshot does not exist');
