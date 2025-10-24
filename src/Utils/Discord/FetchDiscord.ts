@@ -35,7 +35,7 @@ function CreateFetchFunction<T extends {}>(cache: TTLCache<T>, endpoint: string,
 		if (cache.has(cacheKey)) return cache.get(cacheKey)!;
 
 		const endpointFormatted = endpoint.replace(/{(\d+)}/g, (_, index) => ids[parseInt(index)]);
-		const response = await MakeDiscordRequest(endpointFormatted) as T | API_Error;
+		const response = await MakeDiscordRequest<T>(endpointFormatted);
 		if ('code' in response) {
 			throw new Error(`Discord API error: ${response.code} - ${response.message}`);
 		}
