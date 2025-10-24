@@ -50,6 +50,12 @@ const FORMAT = {
 	HTML: 'html'
 }
 
+const SNAPSHOT_TYPE = {
+	AUTOMATIC: 0,
+	MANUAL: 1,
+	IMPORT: 2
+}
+
 export {
 	ROOT_FOLDER,
 	DB_SETUP_FILE,
@@ -65,5 +71,7 @@ export {
 
 	WEBSOCKET_OP_CODES,
 
-	FORMAT
+	FORMAT,
+
+	SNAPSHOT_TYPE
 }
