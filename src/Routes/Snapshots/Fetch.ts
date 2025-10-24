@@ -1,11 +1,8 @@
 import {IEndpoint} from '../../Typings/Types';
 import {Request, Response} from 'express';
 import {FetchSnapshot, ResolveGuildIDFromSnapshot} from "../../Utils/SnapshotUtils";
-import {ResolveToken} from "../../Utils/OAuth/ResolveToken";
-import {GetGuilds} from "../../Utils/OAuth/UserRoutes";
-import {FetchDiscordGuild, FetchDiscordMember, FetchOAuthUser} from "../../Utils/Discord/FetchDiscord";
-import {GlobalMemberPermissions} from "../../Utils/Discord/MemberPermissions";
 import {DISCORD_PERMISSIONS} from "../../Utils/Discord/Permissions";
+import {ResolvePermissionsFromRequest} from "../../Utils/Discord/ResolvePermissionsFromRequest";
 
 export default {
 	method: 'GET',
