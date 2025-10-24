@@ -58,9 +58,10 @@ export async function PinSnapshot(snapshotID: number, pinned: boolean) {
 	const maxSnapshots = await MaxSnapshots(guildID);
 
 	const snapshotList = await ListSnapshots(guildID);
-	const pinnedSnapshotCount = snapshotList.reduce((curr, snapshot) => curr += snapshot.pinned, 0);
+	const pinnedSnapshotCount = snapshotList.reduce((curr, snapshot) => curr + snapshot.pinned, 0);
+	const pinnedCountAfterOperation = pinnedSnapshotCount + (pinned ? 1 : -1);
 
-	if (pinnedSnapshotCount >= maxSnapshots) throw new Error('No slots available');
+	if (pinned && pinnedCountAfterOperation >= maxSnapshots) throw new Error('No slots available');
 
 	Database.query(`
 		UPDATE FBI.Snapshots
