@@ -1,3 +1,5 @@
+export const BOT_CLIENT_ID = '1065103018212732938';
+
 export const ROOT_FOLDER = __dirname;
 
 export const DB_SETUP_FILE    = `${ROOT_FOLDER}/../DB_SETUP.sql`;
