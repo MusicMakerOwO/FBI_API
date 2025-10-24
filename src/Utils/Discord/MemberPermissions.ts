@@ -1,13 +1,13 @@
-import {DiscordChannel, DiscordGuild, DiscordMember} from "../../Typings/DiscordTypes";
+import {DiscordChannel, DiscordMember} from "../../Typings/DiscordTypes";
 import {FetchDiscordRole} from "./FetchDiscord";
 import {DISCORD_PERMISSIONS} from "./Permissions";
 
 const ADMIN_PERMISSIONS = Object.values(DISCORD_PERMISSIONS).reduce((a, b) => a | b, 0n);
 
-export async function GlobalMemberPermissions(guild: DiscordGuild, member: DiscordMember) {
+export async function GlobalMemberPermissions(guildID: string, member: DiscordMember) {
 	let permissionsBitfield = 0n;
 
-	const everyoneRole = await FetchDiscordRole(guild.id, guild.id);
+	const everyoneRole = await FetchDiscordRole(guildID, guildID);
 	permissionsBitfield |= BigInt(everyoneRole.permissions);
 
 	// everyone has admin, no need to check roles
@@ -16,7 +16,7 @@ export async function GlobalMemberPermissions(guild: DiscordGuild, member: Disco
 	}
 
 	for (const roleID of member.roles) {
-		const role = await FetchDiscordRole(guild.id, roleID);
+		const role = await FetchDiscordRole(guildID, roleID);
 		permissionsBitfield |= BigInt(role.permissions);
 
 		// a role grants the user admin, we can skip everything else
@@ -28,8 +28,8 @@ export async function GlobalMemberPermissions(guild: DiscordGuild, member: Disco
 	return permissionsBitfield;
 }
 
-export async function ChannelMemberPermissions(guild: DiscordGuild, member: DiscordMember, channel: DiscordChannel) {
-	let permissionsBitfield = await GlobalMemberPermissions(guild, member);
+export async function ChannelMemberPermissions(guildID: string, member: DiscordMember, channel: DiscordChannel) {
+	let permissionsBitfield = await GlobalMemberPermissions(guildID, member);
 	if (permissionsBitfield & DISCORD_PERMISSIONS.ADMINISTRATOR) {
 		return ADMIN_PERMISSIONS;
 	}
@@ -49,7 +49,7 @@ export async function ChannelMemberPermissions(guild: DiscordGuild, member: Disc
 	}
 
 	// apply everyone overwrite
-	const everyoneOverwrite = channelOverwrites.get(guild.id);
+	const everyoneOverwrite = channelOverwrites.get(guildID);
 	if (everyoneOverwrite) {
 		permissionsBitfield &= ~everyoneOverwrite.deny;
 		permissionsBitfield |= everyoneOverwrite.allow;
