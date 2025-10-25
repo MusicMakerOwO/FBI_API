@@ -82,6 +82,7 @@ export async function PinSnapshot(snapshotID: number, pinned: boolean) {
 	// invalidate caches - force a fresh fetch next time
 	GuildSnapshotCache.delete(guildID);
 	SnapshotCache.delete(snapshotID);
+	SnapshotMetadataCache.delete(snapshotID);
 }
 
 type SnapshotData = DB_Snapshot & {
@@ -273,6 +274,7 @@ export async function DeleteSnapshot(snapshotID: number) {
 	// invalidate caches - force a fresh fetch next time
 	GuildSnapshotCache.delete(guildID);
 	SnapshotCache.delete(snapshotID);
+	SnapshotMetadataCache.delete(snapshotID);
 }
 
 const banCache = new TTLCache< DiscordBan[] >(1000 * 60 * 10); // guild_id -> Map<userID, DiscordBan>
@@ -678,6 +680,7 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 	// invalidate caches - force a fresh fetch next time
 	GuildSnapshotCache.delete(guildID);
 	SnapshotCache.delete(snapshotID);
+	SnapshotMetadataCache.delete(snapshotID);
 
 	return snapshotID;
 }
