@@ -47,21 +47,14 @@ export async function ListSnapshots(guildID: string) {
 	return snapshotList;
 }
 
-const SnapshotGuildCache = new LRUCache<number, string | undefined>(1000);
 /**
- * Guild ID will be undefined only if the snapshot does not exist
+ * Internally just calls FetchSnapshotMetadata() and returns the guild ID from that.
+ * Returns null if the snapshot does not exist.
  * @param snapshotID
  */
 export async function ResolveGuildIDFromSnapshot(snapshotID: number) {
-	if (SnapshotGuildCache.has(snapshotID)) return SnapshotGuildCache.get(snapshotID)!;
-
-	const guildID = await Database.query(`
-		SELECT guild_id FROM FBI.Snapshots
-		WHERE id = ?
-	`, [snapshotID]).then(res => res[0]?.guild_id) as string | undefined;
-
-	SnapshotGuildCache.set(snapshotID, guildID);
-	return guildID;
+	const metadata = await FetchSnapshotMetadata(snapshotID);
+	return metadata ? metadata.guild_id : null;
 }
 
 /**
@@ -117,12 +110,12 @@ export async function FetchSnapshot(snapshotID: number) {
 	const snapshotIDsToFetch = snapshotList.map(x => x.id).filter(id => id <= snapshotID); // just for ease of use lol
 	if (snapshotIDsToFetch.length === 0) throw new Error('No snapshots to fetch - List is empty');
 
-	const connection = await Database.getConnection();
+	// won't use until the end of the function, but the connection is only used here lol
+	const snapshotMetadata = await FetchSnapshotMetadata(snapshotID);
 
 	const searchParams = snapshotIDsToFetch.map((id) => id).join(', ');
 
-	// wont use until the end of the function, but the connection is only used here lol
-	const snapshotMetadata = await connection.query(`SELECT * FROM FBI.Snapshots WHERE id = ?`, [snapshotID]).then(x => x[0]) as DB_Snapshot;
+	const connection = await Database.getConnection();
 
 	const fetchedRoles       = await connection.query(`SELECT * FROM FBI.SnapshotRoles       WHERE snapshot_id IN (${searchParams})`, []) as DB_Snapshot_Role[];
 	const fetchedChannels    = await connection.query(`SELECT * FROM FBI.SnapshotChannels    WHERE snapshot_id IN (${searchParams})`, []) as DB_Snapshot_Channel[];
@@ -160,7 +153,7 @@ export async function FetchSnapshot(snapshotID: number) {
 	ProcessEntities(bans, fetchedBans, 'user_id');
 
 	const snapshot: SnapshotData = {
-		... snapshotMetadata,
+		... snapshotMetadata!,
 
 		channels   : Array.from(channels.values()),
 		roles      : Array.from(roles.values()),
@@ -172,14 +165,15 @@ export async function FetchSnapshot(snapshotID: number) {
 	return snapshot;
 }
 
-const SnapshotMetadataCache = new LRUCache<number, DB_Snapshot>(1000);
+const SnapshotMetadataCache = new LRUCache<number, DB_Snapshot | null>(1000);
 export async function FetchSnapshotMetadata(snapshotID: number) {
 	if (SnapshotMetadataCache.has(snapshotID)) return SnapshotMetadataCache.get(snapshotID)!;
 
-	const guildID = await ResolveGuildIDFromSnapshot(snapshotID);
-	if (!guildID) throw new Error('Snapshot does not exist');
+	const snapshotMetadata = await Database.query(`
+		SELECT * FROM FBI.Snapshots
+		WHERE id = ?
+	`, [snapshotID]).then(res => res[0] ?? null) as DB_Snapshot | null;
 
-	const snapshotMetadata = await Database.query(`SELECT * FROM FBI.Snapshots WHERE id = ?`, [snapshotID]).then(x => x[0]) as DB_Snapshot;
 	SnapshotMetadataCache.set(snapshotID, snapshotMetadata);
 	return snapshotMetadata;
 }
