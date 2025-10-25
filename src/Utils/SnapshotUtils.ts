@@ -230,7 +230,7 @@ export async function DeleteSnapshot(snapshotID: number) {
 			promiseQueue.push(
 				// delete entries that exist in the next snapshot
 				connection.query(`
-                    DELETE FROM ${table.name}
+                    DELETE FROM FBI.${table.name}
                     WHERE snapshot_id = ?
                       AND EXISTS (
                         SELECT 1
@@ -242,7 +242,7 @@ export async function DeleteSnapshot(snapshotID: number) {
 
 				// move over entries that don't exist in the next snapshot
 				connection.query(`
-					UPDATE ${table.name}
+					UPDATE FBI.${table.name}
 					SET snapshot_id = ?
 					WHERE snapshot_id = ?
 					AND NOT EXISTS (
@@ -255,7 +255,7 @@ export async function DeleteSnapshot(snapshotID: number) {
 
 				// delete any remaining entries (should be none, but just in case)
 				connection.query(`
-					DELETE FROM ${table.name}
+					DELETE FROM FBI.${table.name}
 					WHERE snapshot_id = ?
 				`, [snapshotID])
 			);
