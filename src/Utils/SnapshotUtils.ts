@@ -258,21 +258,21 @@ export async function DeleteSnapshot(snapshotID: number) {
 				`, [ snapshotID ])
 			);
 		}
-
-		await Promise.all(promiseQueue);
-
-		// and finally delete the snapshot entry itself
-		await connection.query(`
-			DELETE FROM FBI.Snapshots
-			WHERE id = ?
-		`, [snapshotID]);
-
-		Database.releaseConnection(connection);
-
-		// invalidate caches - force a fresh fetch next time
-		GuildSnapshotCache.delete(guildID);
-		SnapshotCache.delete(snapshotID);
 	}
+
+	await Promise.all(promiseQueue);
+
+	// and finally delete the snapshot entry itself
+	await connection.query(`
+		DELETE FROM FBI.Snapshots
+		WHERE id = ?
+	`, [snapshotID]);
+
+	Database.releaseConnection(connection);
+
+	// invalidate caches - force a fresh fetch next time
+	GuildSnapshotCache.delete(guildID);
+	SnapshotCache.delete(snapshotID);
 }
 
 const banCache = new TTLCache< DiscordBan[] >(1000 * 60 * 10); // guild_id -> Map<userID, DiscordBan>
