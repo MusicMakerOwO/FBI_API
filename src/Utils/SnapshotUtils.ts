@@ -190,19 +190,19 @@ export async function DeleteSnapshot(snapshotID: number) {
 
 	const tables = [
 		{
-			name: 'SnapshotRoles',
+			name: 'FBI.SnapshotRoles',
 			idColumn: 'id'
 		},
 		{
-			name: 'SnapshotChannels',
+			name: 'FBI.SnapshotChannels',
 			idColumn: 'id'
 		},
 		{
-			name: 'SnapshotPermissions',
+			name: 'FBI.SnapshotPermissions',
 			idColumn: 'id'
 		},
 		{
-			name: 'SnapshotBans',
+			name: 'FBI.SnapshotBans',
 			idColumn: 'user_id'
 		}
 	]
@@ -216,7 +216,7 @@ export async function DeleteSnapshot(snapshotID: number) {
 		for (const table of tables) {
 			promiseQueue.push(
 				connection.query(`
-					DELETE FROM FBI.${table.name}
+					DELETE FROM ${table.name}
 					WHERE snapshot_id = ?
 				`, [snapshotID])
 			);
@@ -224,40 +224,38 @@ export async function DeleteSnapshot(snapshotID: number) {
 	} else {
 		// not the most recent snapshot, we have to merge the changes into the next snapshot
 
-		const nextSnapshotID = snapshotList[ snapshotList.findIndex(s => s.id === snapshotID) - 1 ].id;
+		const nextSnapshotID = snapshotList[snapshotList.findIndex(s => s.id === snapshotID) - 1].id;
 
 		for (const table of tables) {
 			promiseQueue.push(
 				// delete entries that exist in the next snapshot
 				connection.query(`
-                    DELETE FROM FBI.${table.name}
+                    DELETE
+                    FROM ${table.name}
                     WHERE snapshot_id = ?
-                      AND EXISTS (
-                        SELECT 1
-                        FROM ${table.name} AS next
-                        WHERE next.snapshot_id = ?
-                          AND next.${table.idColumn} = ${table.name}.${table.idColumn}
-                    )
-				`, [snapshotID, nextSnapshotID]),
+                      AND EXISTS (SELECT 1
+                                  FROM ${table.name} AS next
+                                  WHERE next.snapshot_id = ?
+                                    AND next.${table.idColumn} = ${table.name}.${table.idColumn})
+				`, [ snapshotID, nextSnapshotID ]),
 
 				// move over entries that don't exist in the next snapshot
 				connection.query(`
-					UPDATE FBI.${table.name}
-					SET snapshot_id = ?
-					WHERE snapshot_id = ?
-					AND NOT EXISTS (
-						SELECT 1
-						FROM ${table.name} AS next
-						WHERE next.snapshot_id = ?
-						AND next.${table.idColumn} = ${table.name}.${table.idColumn}
-					)
-				`, [nextSnapshotID, snapshotID, nextSnapshotID]),
+                    UPDATE ${table.name}
+                    SET snapshot_id = ?
+                    WHERE snapshot_id = ?
+                      AND NOT EXISTS (SELECT 1
+                                      FROM ${table.name} AS next
+                                      WHERE next.snapshot_id = ?
+                                        AND next.${table.idColumn} = ${table.name}.${table.idColumn})
+				`, [ nextSnapshotID, snapshotID, nextSnapshotID ]),
 
 				// delete any remaining entries (should be none, but just in case)
 				connection.query(`
-					DELETE FROM FBI.${table.name}
-					WHERE snapshot_id = ?
-				`, [snapshotID])
+                    DELETE
+                    FROM ${table.name}
+                    WHERE snapshot_id = ?
+				`, [ snapshotID ])
 			);
 		}
 
