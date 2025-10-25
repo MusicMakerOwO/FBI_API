@@ -4,16 +4,15 @@ import {Export} from "../Utils/Processing/Export";
 import {ResolveToken} from "../Utils/OAuth/ResolveToken";
 import {GetGuilds} from "../Utils/OAuth/UserRoutes";
 import {
+	FetchChannelsBulk,
 	FetchDiscordMember,
-	FetchOAuthUser,
-	MakeDiscordRequest
+	FetchOAuthUser
 } from "../Utils/Discord/FetchDiscord";
 import {ChannelMemberPermissions} from "../Utils/Discord/MemberPermissions";
 import {DISCORD_PERMISSIONS} from "../Utils/Discord/Permissions";
 import {Log} from "../Utils/Log";
 import {FORMAT} from "../Constants";
 import {ObjectValues} from "../Typings/HelperTypes";
-import {DiscordChannel} from "../Typings/DiscordTypes";
 
 export default {
 	method: 'POST',
@@ -45,10 +44,7 @@ export default {
 		const user = await FetchOAuthUser(token);
 		const member = await FetchDiscordMember(guild_id, user.id);
 
-		const guildChannelList = await MakeDiscordRequest<DiscordChannel[]>( `/guilds/${guild_id}/channels`);
-		if ('code' in guildChannelList) {
-			throw new Error(`Discord API error ${guildChannelList.code}: ${guildChannelList.message}`);
-		}
+		const guildChannelList = await FetchChannelsBulk(guild_id);
 
 		const targetChannel = guildChannelList.find(c => c.id === channel_id);
 		if (!targetChannel) {

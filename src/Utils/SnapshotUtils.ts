@@ -8,12 +8,12 @@ import {
 } from "../Typings/DatabaseTypes";
 import {TTLCache} from "./Cache/TTLCache";
 import {LRUCache} from "./Cache/LRUCache";
-import {FetchDiscordGuild, FetchDiscordMember, MakeDiscordRequest} from "./Discord/FetchDiscord";
+import {FetchChannelsBulk, FetchDiscordGuild, FetchDiscordMember, MakeDiscordRequest} from "./Discord/FetchDiscord";
 import {ObjectValues} from "../Typings/HelperTypes";
 import {BOT_CLIENT_ID, SNAPSHOT_TYPE} from "../Constants";
 import {DISCORD_PERMISSIONS} from "./Discord/Permissions";
 import {Log} from "./Log";
-import {DiscordBan, DiscordChannel} from "../Typings/DiscordTypes";
+import {DiscordBan} from "../Typings/DiscordTypes";
 import {HashObject} from "./HashObject";
 import {
 	SimpleBan,
@@ -350,10 +350,7 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 	const permissions: Diff<SimplePermission>[] = [];
 	const bans       : Diff<SimpleBan>       [] = [];
 
-	const guildChannels = await MakeDiscordRequest<DiscordChannel[]>(`guilds/${guildID}/channels`);
-	if ('code' in guildChannels) {
-		throw new Error(`Discord API error: ${guildChannels.code} - ${guildChannels.message}`);
-	}
+	const guildChannels = await FetchChannelsBulk(guildID);
 
 	const guildRoles = guild.roles;
 	const guildBans = currentBans;
