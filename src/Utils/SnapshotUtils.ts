@@ -378,7 +378,7 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 
 	const latestSnapshotID = await connection.query(`
 		SELECT MAX(id) as id
-		FROM Snapshots
+		FROM FBI.Snapshots
 		WHERE guild_id = ?
 	`, [guild.id]).then(x => x[0]?.id ?? null ) as number | null;
 
