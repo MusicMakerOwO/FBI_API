@@ -675,5 +675,9 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 	Log('DEBUG', `Snapshot #${snapshotID} created for ${guild.name} (${guild.id})`);
 	Log('DEBUG', `Fetching : ${banDuration.toFixed(2)}ms, Diffing : ${diffDuration.toFixed(2)}ms, DB : ${dbDuration.toFixed(2)}ms`);
 
+	// invalidate caches - force a fresh fetch next time
+	GuildSnapshotCache.delete(guildID);
+	SnapshotCache.delete(snapshotID);
+
 	return snapshotID;
 }
