@@ -587,18 +587,18 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 	dbStart = process.hrtime.bigint();
 
 	await connection.query(`
-		INSERT INTO Snapshots (guild_id, type)
+		INSERT INTO FBI.Snapshots (guild_id, type)
 		VALUES (?, ?)
 	`, [guild.id, type]);
 
-	const snapshotID = await connection.query('SELECT MAX(id) as id FROM Snapshots WHERE guild_id = ?', [guild.id]).then(rows => rows[0].id) as number;
+	const snapshotID = await connection.query('SELECT MAX(id) as id FROM FBI.Snapshots WHERE guild_id = ?', [guild.id]).then(rows => rows[0].id) as number;
 
 	try {
 		const promiseQueue = [];
 
 		if (roles.length > 0) promiseQueue.push(
 			connection.batch(`
-                INSERT INTO SnapshotRoles (
+                INSERT INTO FBI.SnapshotRoles (
 					   snapshot_id,
 					   id, name, color, hoist,
 					   position, permissions, managed,
@@ -614,7 +614,7 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 
 		if (channels.length > 0) promiseQueue.push(
 			connection.batch(`
-				INSERT INTO SnapshotChannels (
+				INSERT INTO FBI.SnapshotChannels (
 					snapshot_id,
 					id, type, name, position,
 					topic, nsfw, parent_id,
@@ -631,7 +631,7 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 
 		if (permissions.length > 0) promiseQueue.push(
 			connection.batch(`
-				INSERT INTO SnapshotPermissions (
+				INSERT INTO FBI.SnapshotPermissions (
 					snapshot_id,
 					channel_id, role_id, allow, deny,
 					hash, deleted
@@ -646,7 +646,7 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 
 		if (bans.length > 0) promiseQueue.push(
 			connection.batch(`
-				INSERT INTO SnapshotBans (
+				INSERT INTO FBI.SnapshotBans (
 					snapshot_id,
 					user_id, reason,
 					hash, deleted
