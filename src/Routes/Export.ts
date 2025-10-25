@@ -21,7 +21,7 @@ export default {
 		const {guild_id, channel_id, format, message_count} = req.body as { guild_id: string; channel_id: string; format: ObjectValues<typeof FORMAT>; message_count: number };
 
 		if (message_count < 20 || message_count > 10_000) {
-			return { status: 400, message: 'Message count must be between 20 and 10,000' };
+			return res.status(400).send('Message count must be between 20 and 10,000');
 		}
 
 		if (!Object.values(FORMAT).includes(format)) {
