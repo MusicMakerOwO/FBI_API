@@ -18,10 +18,14 @@ export default {
 		message_count: 'number',
 	},
 	handler: async (req: Request, res: Response) => {
-		const {guild_id, channel_id, format, message_count} = req.body as { guild_id: string; channel_id: string; format: string; message_count: number };
+		const {guild_id, channel_id, format, message_count} = req.body as { guild_id: string; channel_id: string; format: ObjectValues<typeof FORMAT>; message_count: number };
 
 		if (message_count < 20 || message_count > 10_000) {
 			return { status: 400, message: 'Message count must be between 20 and 10,000' };
+		}
+
+		if (!Object.values(FORMAT).includes(format)) {
+			return res.status(400).send(`Invalid format, must be one of: ${Object.values(FORMAT).join(', ')}`);
 		}
 
 		const [ token, expiresAt ] = ResolveToken(req);
