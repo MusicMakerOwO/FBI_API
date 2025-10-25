@@ -674,8 +674,8 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 	const diffDuration = Number(diffEnd - diffStart) / 1e6;
 	const dbDuration = Number(dbEnd - dbStart) / 1e6;
 
-	Log('DEBUG', `Snapshot #${snapshotID} created for ${guild.name} (${guild.id})`, 0x7946ff);
-	Log('DEBUG', `Fetching : ${banDuration.toFixed(2)}ms, Diffing : ${diffDuration.toFixed(2)}ms, DB : ${dbDuration.toFixed(2)}ms`, 0x7946ff);
+	Log('DEBUG', `Snapshot #${snapshotID} created for ${guild.name} (${guild.id})`);
+	Log('DEBUG', `Fetching : ${banDuration.toFixed(2)}ms, Diffing : ${diffDuration.toFixed(2)}ms, DB : ${dbDuration.toFixed(2)}ms`);
 
 	return snapshotID;
 }
