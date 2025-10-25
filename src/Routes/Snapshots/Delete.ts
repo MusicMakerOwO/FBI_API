@@ -23,6 +23,8 @@ export default {
 			return { status: 403, message: 'You do not have permission to access snapshots' };
 		}
 
-		return await DeleteSnapshot(snapshotID);
+		await DeleteSnapshot(snapshotID);
+
+		return { status: 200 };
 	}
 } as IEndpoint;
