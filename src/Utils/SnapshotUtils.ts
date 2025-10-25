@@ -332,8 +332,6 @@ export async function CreateSnapshot(guildID: string, type: ObjectValues<typeof 
 
 	let currentBans: DiscordBan[] = [];
 
-	console.log(botMember);
-
 	const fetchStart = process.hrtime.bigint();
 	const botPermissions = await GlobalMemberPermissions(guildID, botMember);
 	if ((botPermissions & DISCORD_PERMISSIONS.BAN_MEMBERS) === 0n) {
